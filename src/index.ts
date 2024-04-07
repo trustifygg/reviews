@@ -27,15 +27,6 @@ export const botClient = new Client({
 		GatewayIntentBits.MessageContent,
 	],
 	partials: [Partials.Channel, Partials.Message, Partials.User],
-	presence: {
-		status: "dnd",
-		activities: [
-			{
-				name: "Hello World!",
-				type: ActivityType.Listening,
-			},
-		],
-	},
 });
 
 export const commands = new Collection<string, any>();
