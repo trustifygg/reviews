@@ -8,7 +8,7 @@ import {
 	TextChannel,
 } from "discord.js";
 import { getOrCreateGuild } from "../../utils/database";
-import { ReviewDB } from "../../database/models";
+import { ReviewDB } from "../../models.db";
 import { botClient } from "../..";
 
 export const data = new SlashCommandBuilder()

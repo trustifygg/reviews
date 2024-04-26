@@ -11,7 +11,7 @@ import {
 	TextChannel,
 } from "discord.js";
 import { EventOptions } from "../types";
-import { ReviewDB } from "../database/models";
+import { ReviewDB } from "../models.db";
 import { convertButtonStyle } from "../utils/convertButtonStyle";
 import { getOrCreateGuild } from "../utils/database";
 

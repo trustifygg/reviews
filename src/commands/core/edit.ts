@@ -13,7 +13,7 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
-import { IGuild, ReviewDB } from "../../database/models";
+import { IGuild, ReviewDB } from "../../models.db";
 import { getOrCreateGuild } from "../../utils/database";
 import { getRating } from "../../utils/convertToStars";
 

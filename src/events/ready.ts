@@ -1,7 +1,7 @@
 import { ActivityType, Client, Events } from "discord.js";
 import { commands, log } from "..";
 import { EventOptions } from "../types";
-import { ReviewDB } from "../database/models";
+import { ReviewDB } from "../models.db";
 
 export const data: EventOptions = {
 	name: Events.ClientReady,

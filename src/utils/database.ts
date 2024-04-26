@@ -1,4 +1,4 @@
-import { GuildDB } from "../database/models";
+import { GuildDB } from "../models.db";
 
 export const getOrCreateGuild = async (guildId: string) => {
 	const guild = await GuildDB.findOne({ guildId });

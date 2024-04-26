@@ -6,7 +6,7 @@ import {
 	WebhookClient,
 } from "discord.js";
 import { EventOptions } from "../types";
-import { GuildDB, IGuild } from "../database/models";
+import { GuildDB, IGuild } from "../models.db";
 import { log } from "..";
 import { getDynamicTime } from "../utils/getDynamicTime";
 

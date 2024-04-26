@@ -16,6 +16,11 @@ export interface IGuild extends Document {
 	reviewStats: IReviewStats;
 }
 
+export interface IUser extends Document {
+	userId: string;
+	reviews: string[];
+}
+
 export interface IReviewStats {
 	category: string;
 	totalReviewsChannel: string;
@@ -86,6 +91,15 @@ export const GuildDB = model<IGuild>(
 		},
 	}),
 	"Guilds"
+);
+
+export const UserDB = model(
+	"UserDB",
+	new Schema({
+		userId: { type: String, unique: true },
+		reviews: { type: [String], default: [] },
+	}),
+	"Users"
 );
 
 export const ReviewDB = model<IReview>(

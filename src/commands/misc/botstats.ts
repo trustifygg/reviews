@@ -7,7 +7,7 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import { getDynamicTime } from "../../utils/getDynamicTime";
-import { ReviewDB } from "../../database/models";
+import { ReviewDB } from "../../models.db";
 import pkg from "../../../package.json";
 
 export const data = new SlashCommandBuilder()

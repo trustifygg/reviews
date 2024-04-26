@@ -15,7 +15,7 @@ import {
 	ThreadAutoArchiveDuration,
 } from "discord.js";
 import { getOrCreateGuild } from "./database";
-import { IGuild, IReview, ReviewDB } from "../database/models";
+import { IGuild, IReview, ReviewDB } from "../models.db";
 import { getRating } from "./convertToStars";
 import { generateReviewId } from "./generateReviewId";
 import { convertButtonStyle } from "./convertButtonStyle";

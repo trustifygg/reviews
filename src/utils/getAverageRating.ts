@@ -1,4 +1,4 @@
-import { ReviewDB } from "../database/models";
+import { ReviewDB } from "../models.db";
 
 export const getAverageRating = async (guildId: string) => {
 	const reviews = await ReviewDB.find({ guildId });
