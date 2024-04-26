@@ -4,9 +4,12 @@
 	"version": "1.5.0",
 	"main": "src/index.ts",
 	"scripts": {
-		"start": "node dist/index.ts",
+		"start": "ts-node src/index.ts",
+		"dev": "npm run format && ts-node-dev src/index.ts",
+		"prod": "node dist/src/index.js",
 		"build": "tsc",
-		"dev": "nodemon src/index.ts"
+		"watch": "tsc -w",
+		"nodemon": "nodemon src/index.ts"
 	},
 	"keywords": [],
 	"author": "solus",

@@ -93,9 +93,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 	);
 
 	await interaction.reply({
-		content: `Successfully created your review.\n\n> <:LogoColoured:1210307915316203542> **Rivanode Cloud Hosting**
-> [Click here](<https://rivanode.com>) to visit Rivanode's website and get cheap Bot and Minecraft server hosting!`,
+		content: `Successfully created your review.`,
 		ephemeral: true,
 	});
 	return;
 }
+
+// \n\n> <:LogoColoured:1210307915316203542> **Rivanode Cloud Hosting**
+//> [Click here](<https://rivanode.com>) to visit Rivanode's website and get cheap Bot and Minecraft server hosting!

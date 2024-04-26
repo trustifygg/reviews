@@ -1,9 +1,7 @@
 import {
-	ActivityType,
 	Client,
 	Collection,
 	GatewayIntentBits,
-	Partials,
 } from "discord.js";
 import { readdirSync } from "fs";
 import { resolve } from "path";
@@ -20,16 +18,29 @@ export const log: Logger<ILogObj> = new Logger({
 });
 
 export const botClient = new Client({
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.MessageContent,
-	],
-	partials: [Partials.Channel, Partials.Message, Partials.User],
+	intents: [GatewayIntentBits.Guilds],
 });
 
 export const commands = new Collection<string, any>();
+
+// Handle Errors
+
+process.on("unhandledRejection", (reason: Error, promise: Promise<any>) => {
+	log.error(reason);
+});
+
+process.on("rejectionHandled", (promise: Promise<any>) => {
+	const reason: Error = new Error("Rejection handled");
+	log.error(reason);
+});
+
+process.on("uncaughtException", (err: Error, origin: string) => {
+	log.error(err);
+});
+
+process.on("uncaughtExceptionMonitor", (err: Error, origin: string) => {
+	log.error(err);
+});
 
 async function main() {
 	// Handle Commands
@@ -38,8 +49,8 @@ async function main() {
 
 	for (const folder of commandFolders) {
 		const folderPath = resolve(commandsPath, folder);
-		const commandFiles = readdirSync(folderPath).filter((file) =>
-			file.endsWith(".ts")
+		const commandFiles = readdirSync(folderPath).filter(
+			(file) => file.endsWith(".ts") || file.endsWith(".js")
 		);
 
 		for (const file of commandFiles) {
@@ -61,8 +72,8 @@ async function main() {
 
 	// Handle Events
 	const eventsPath = resolve(__dirname, "events");
-	const eventFiles = readdirSync(eventsPath).filter((file) =>
-		file.endsWith(".ts")
+	const eventFiles = readdirSync(eventsPath).filter(
+		(file) => file.endsWith(".ts") || file.endsWith(".js")
 	);
 
 	for (const file of eventFiles) {

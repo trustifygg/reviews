@@ -1,6 +1,7 @@
-import { Client, Events } from "discord.js";
+import { ActivityType, Client, Events } from "discord.js";
 import { commands, log } from "..";
 import { EventOptions } from "../types";
+import { ReviewDB } from "../database/models";
 
 export const data: EventOptions = {
 	name: Events.ClientReady,
@@ -12,6 +13,17 @@ export async function execute(client: Client): Promise<void> {
 		.then(() => {
 			log.info("Successfully registered commands.");
 		});
+
+	setInterval(async () => {
+		client.user?.setPresence({
+			activities: [
+				{
+					name: `${await ReviewDB.countDocuments()} reviews`,
+					type: ActivityType.Watching
+				}
+			]
+		});
+	}, 10000);
 
 	log.info(`Logged in as ${client.user?.tag}`);
 }

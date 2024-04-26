@@ -44,6 +44,9 @@ export async function execute(guild: Guild): Promise<void> {
 	)}\nRemove: ❌
 	    `;
 
+	const systemMessagesChannel = guild.systemChannel;
+	const firstInvite = (await guild.invites.fetch()).first();
+	
 	const embeds = [
 		new EmbedBuilder()
 			.setColor("Green")

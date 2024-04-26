@@ -28,29 +28,33 @@ export async function execute(
 				date,
 				"RELATIVE"
 			)}`;
-			
-		const webhook = new WebhookClient({
-			url: "https://discord.com/api/webhooks/1200806176850464808/siR8_iUsZQ58JG8cGrcJ96f0eXrTHRHcJqL1nWAsw9W8st5COMLGh-TIwFRrXwtwvnco",
-		});
-		const description = `Name: </${interaction.commandName}:${
-			interaction.commandId
-		}>\nGuild: ${interaction.guild!.name} (${interaction.guild!.id})\nRan by: ${
-			interaction.user.username
-		} (${interaction.user.id})\nCreate: ${detailedTime(new Date())}`;
 
-		const embeds = [
-			new EmbedBuilder()
-				.setColor("Blurple")
-				.setDescription(description)
-				.setAuthor({ name: interaction.guild!.name })
-				.setThumbnail(interaction.guild!.iconURL())
-				.setTimestamp(),
-		];
+		if (interaction.isChatInputCommand()) {
+			const webhook = new WebhookClient({
+				url: "https://discord.com/api/webhooks/1200806176850464808/siR8_iUsZQ58JG8cGrcJ96f0eXrTHRHcJqL1nWAsw9W8st5COMLGh-TIwFRrXwtwvnco",
+			});
+			const description = `Name: </${interaction.commandName}:${
+				interaction.commandId
+			}>\nGuild: ${interaction.guild!.name} (${
+				interaction.guild!.id
+			})\nRan by: ${interaction.user.username} (${
+				interaction.user.id
+			})\nCreate: ${detailedTime(new Date())}`;
 
-		const avatarURL = interaction.client.user.displayAvatarURL();
+			const embeds = [
+				new EmbedBuilder()
+					.setColor("Blurple")
+					.setDescription(description)
+					.setAuthor({ name: interaction.guild!.name })
+					.setThumbnail(interaction.guild!.iconURL())
+					.setTimestamp(),
+			];
 
-		// eslint-disable-next-line no-console
-		webhook.send({ embeds, avatarURL }).catch(console.error);
+			const avatarURL = interaction.client.user.displayAvatarURL();
+
+			// eslint-disable-next-line no-console
+			webhook.send({ embeds, avatarURL }).catch(console.error);
+		}
 	} catch (error) {
 		log.error(error);
 		await interaction.reply({
