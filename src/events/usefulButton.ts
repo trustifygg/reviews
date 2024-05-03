@@ -52,15 +52,17 @@ export async function execute(interaction: Interaction) {
 	}
 
 	if (review.useful.voted?.includes(interaction.user.id)) {
-		await interaction.followUp({
-			content: "You have already found this review useful!",
-			ephemeral: true,
-		});
-		return;
+		review.useful.count--;
+		const votedIndex = review.useful.voted.indexOf(interaction.user.id);
+
+		if (votedIndex !== -1) {
+			review.useful.voted.splice(votedIndex, 1);
+		}
+	} else {
+		review.useful.count++;
+		review.useful.voted.push(interaction.user.id);
 	}
 
-	review.useful.count++;
-	review.useful.voted.push(interaction.user.id);
 	await review.save();
 
 	const channel = interaction.guild!.channels.cache.get(guildData!.channel) as
