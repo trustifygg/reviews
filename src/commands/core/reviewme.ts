@@ -77,7 +77,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		.setTimestamp();
 
 	const reply = await interaction.reply({
-		content: `<@${interaction.user.id}>`,
+		content: `<@${user.id}>`,
 		embeds: [embed],
 		components: [row],
 	});
@@ -179,7 +179,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 	const isAnonymous: boolean = anonymous.toLowerCase() === "true";
 
 	await sendReview(
-		interaction,
+		modal,
 		title,
 		content,
 		Number(rating),
