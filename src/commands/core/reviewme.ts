@@ -77,6 +77,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		.setTimestamp();
 
 	const reply = await interaction.reply({
+		content: `<@${interaction.user.id}>`,
 		embeds: [embed],
 		components: [row],
 	});
