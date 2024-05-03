@@ -14,7 +14,7 @@ import {
 	TextChannel,
 	ThreadAutoArchiveDuration,
 } from "discord.js";
-import { getOrCreateGuild } from "./database";
+import { getOrCreateGuild } from "../db";
 import { IGuild, IReview, ReviewDB } from "../models.db";
 import { getRating } from "./convertToStars";
 import { generateReviewId } from "./generateReviewId";

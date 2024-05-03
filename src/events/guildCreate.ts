@@ -26,15 +26,19 @@ export async function execute(guild: Guild): Promise<void> {
 		await newGuild.save();
 	}
 	log.silly("Guild joined.");
+
 	const detailedTime = (date: DateResolvable) =>
 		`${getDynamicTime(date, "LONG_TIME_AND_DATE")}  ${getDynamicTime(
 			date,
 			"RELATIVE"
 		)}`;
+
 	const webhook = new WebhookClient({
 		url: "https://discord.com/api/webhooks/1200631483250004078/DHI0tOHmwlG5ADiIjeNLTM4ijBmyKTOZ3woUlLfZkptCA-e8S-qRpm8ifeLOVKBEcntL",
 	});
+
 	const owner = await guild.fetchOwner();
+	
 	const description = `Name: ${guild.name} (${guild.id})\nOwner: ${
 		owner.user.username
 	} (${owner.id})\nMembers: ${guild.memberCount}\nTotal Guilds: ${
@@ -44,9 +48,6 @@ export async function execute(guild: Guild): Promise<void> {
 	)}\nRemove: ❌
 	    `;
 
-	const systemMessagesChannel = guild.systemChannel;
-	const firstInvite = (await guild.invites.fetch()).first();
-	
 	const embeds = [
 		new EmbedBuilder()
 			.setColor("Green")

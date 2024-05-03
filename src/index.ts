@@ -1,15 +1,12 @@
-import {
-	Client,
-	Collection,
-	GatewayIntentBits,
-} from "discord.js";
+import { Client, Collection, GatewayIntentBits } from "discord.js";
 import { readdirSync } from "fs";
 import { resolve } from "path";
 import { Command, Event } from "./types";
-import mongoose from "mongoose";
-
 import dotenv from "dotenv";
 import { ILogObj, Logger } from "tslog";
+import "./server";
+import { initDB } from "./db";
+
 dotenv.config();
 
 export const log: Logger<ILogObj> = new Logger({
@@ -82,10 +79,7 @@ async function main() {
 		botClient.on(event.data.name, event.execute);
 	}
 
-	await mongoose
-		.connect(process.env.DATABASE_URL as string)
-		.then(() => log.info("Connected to MongoDB."))
-		.catch((e) => log.error("Failed to connect to MongoDB.", e));
+	initDB();
 
 	await botClient.login(process.env.BOT_TOKEN);
 }

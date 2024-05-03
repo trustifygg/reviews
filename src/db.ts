@@ -1,32 +1,22 @@
-import {
-	GuildDB,
-	IGuild,
-	IReview,
-	IUser,
-	ReviewDB,
-	UserDB,
-} from "./models.db";
+import mongoose from "mongoose";
+import { log } from ".";
+import { GuildDB } from "./models.db";
 
-export const getGuildData = async (guildId: string): Promise<IGuild> => {
-	const data = (await GuildDB.findOne({ guildId })) as IGuild;
-	if (!data) new GuildDB({ guildId }).save();
-
-	return data;
+export const initDB = async (): Promise<void> => {
+	await mongoose
+		.connect(process.env.DATABASE_URL as string)
+		.then(() => {
+			log.info("Connected to MongoDB");
+		})
+		.catch((err) => log.error(err));
 };
 
-export const getUserData = async (userId: string): Promise<IUser> => {
-	const data = (await UserDB.findOne({ userId })) as IUser;
-	if (!data) new UserDB({ userId }).save();
-
-	return data;
+export const getOrCreateGuild = async (guildId: string) => {
+	const guild = await GuildDB.findOne({ guildId });
+	if (!guild) return await GuildDB.create({ guildId });
+	return guild;
 };
 
-export const getReviewData = async (
-	guildId: string,
-	reviewId: string
-): Promise<IReview | null> => {
-	const data = (await ReviewDB.findOne({ guildId, reviewId })) as IReview;
-	if (!data) return null;
-
-	return data;
+export const createGuild = async (guildId: string) => {
+	return await GuildDB.create({ guildId });
 };

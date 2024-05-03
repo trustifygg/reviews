@@ -3,7 +3,7 @@ import {
 	GuildMember,
 	SlashCommandBuilder,
 } from "discord.js";
-import { getOrCreateGuild } from "../../utils/database";
+import { getOrCreateGuild } from "../../db";
 import { sendReview } from "../../utils/sendReview";
 
 export const data = new SlashCommandBuilder()

@@ -7,13 +7,14 @@ import {
 	SlashCommandBuilder,
 	TextChannel,
 } from "discord.js";
-import { getOrCreateGuild } from "../../utils/database";
+import { getOrCreateGuild } from "../../db";
 import { ReviewDB } from "../../models.db";
 import { botClient } from "../..";
 
 export const data = new SlashCommandBuilder()
 	.setName("delete")
 	.setDescription("Delete a review.")
+	.setDMPermission(false)
 	.addStringOption((option) =>
 		option
 			.setName("id")

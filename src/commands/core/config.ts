@@ -8,7 +8,7 @@ import {
 	NewsChannel,
 	Role,
 } from "discord.js";
-import { createGuild, getOrCreateGuild } from "../../utils/database";
+import { createGuild, getOrCreateGuild } from "../../db";
 
 export const data = new SlashCommandBuilder()
 	.setName("config")

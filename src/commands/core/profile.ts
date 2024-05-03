@@ -1,9 +1,15 @@
 import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
 	ChatInputCommandInteraction,
+	ComponentType,
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { UserDB } from "../../models.db";
+import { ReviewDB, UserDB } from "../../models.db";
+import { getAverageRating } from "../../utils/getAverageRating";
+import { getRating } from "../../utils/convertToStars";
 
 export const data = new SlashCommandBuilder()
 	.setName("profile")
@@ -19,6 +25,19 @@ export const data = new SlashCommandBuilder()
 export const execute = async (interaction: ChatInputCommandInteraction) => {
 	const user = interaction.options.getUser("user", true);
 	const userData = await UserDB.findOne({ userId: user.id });
+	const reviewData = await ReviewDB.find({ userId: user.id });
+
+	const totalReviews = reviewData.length;
+	const averageRating = await getAverageRating(undefined, user.id);
+	const latestReview = reviewData[0];
+
+	const row = new ActionRowBuilder<ButtonBuilder>().setComponents(
+		new ButtonBuilder()
+			.setCustomId("view_reviews")
+			.setLabel("View Reviews")
+			.setStyle(ButtonStyle.Secondary)
+			.setEmoji("📃")
+	);
 
 	const embed = new EmbedBuilder()
 		.setColor("#5865F2")
@@ -27,8 +46,38 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 			iconURL: user.displayAvatarURL(),
 		})
 		.setDescription(
-			`${user.toString()} has a total of \`0\`  reviews with an average rating of \`4.5\`!`
-		);
+			reviewData
+				? `${user.toString()} has a total of \`${totalReviews}\`  reviews with an average rating of \`${averageRating}\`!`
+				: `No reviews found for ${user.toString}`
+		)
+		.addFields({
+			name: "Most Recent Review",
+			value: `${latestReview.review} - ${getRating(latestReview.rating)} (${
+				latestReview.rating
+			} / 5)`,
+			inline: false,
+		});
 
-	await interaction.reply({ embeds: [embed] });
+	const sent = await interaction.reply({ embeds: [embed], components: [row] });
+
+	await sent
+		.awaitMessageComponent({
+			filter: (i) => i.customId === "view_reviews",
+			componentType: ComponentType.Button,
+		})
+		.then(async (button) => {
+			const reviews = reviewData.map((review) => {
+				const rating = review.rating;
+				const description = review.review;
+
+				return `${getRating(rating)} (${rating} / 5) - ${description}`;
+			});
+
+			const reviewEmbed = new EmbedBuilder()
+				.setColor("#5865F2")
+				.setTitle(`${user.username}'s Reviews`)
+				.setDescription(reviews.join("\n"));
+
+			await button.reply({ embeds: [reviewEmbed], ephemeral: true });
+		});
 };

@@ -14,12 +14,13 @@ import {
 	TextInputStyle,
 } from "discord.js";
 import { IGuild, ReviewDB } from "../../models.db";
-import { getOrCreateGuild } from "../../utils/database";
+import { getOrCreateGuild } from "../../db";
 import { getRating } from "../../utils/convertToStars";
 
 export const data = new SlashCommandBuilder()
 	.setName("edit")
 	.setDescription("Edit a review.")
+	.setDMPermission(false)
 	.addStringOption((option) =>
 		option
 			.setName("review-id")

@@ -1,7 +1,16 @@
 import { ReviewDB } from "../models.db";
 
-export const getAverageRating = async (guildId: string) => {
-	const reviews = await ReviewDB.find({ guildId });
+export const getAverageRating = async (guildId?: string, userId?: string) => {
+	let reviews;
+	if (guildId && userId) {
+		reviews = await ReviewDB.find({ guildId, userId });
+	} else if (guildId) {
+		reviews = await ReviewDB.find({ guildId });
+	} else if (userId) {
+		reviews = await ReviewDB.find({ userId });
+	} else {
+		reviews = await ReviewDB.find();
+	}
 
 	if (!reviews || reviews.length === 0) return 0;
 

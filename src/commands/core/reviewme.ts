@@ -4,12 +4,14 @@ import {
 	ButtonStyle,
 	ChatInputCommandInteraction,
 	EmbedBuilder,
+	GuildMember,
 	ModalBuilder,
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
-import { getOrCreateGuild } from "../../utils/database";
+import { getOrCreateGuild } from "../../db";
+import { sendReview } from "../../utils/sendReview";
 
 export const data = new SlashCommandBuilder()
 	.setName("reviewme")
@@ -74,8 +76,117 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		})
 		.setTimestamp();
 
-	await interaction.reply({
+	const reply = await interaction.reply({
 		embeds: [embed],
 		components: [row],
+	});
+
+	const button = await reply.awaitMessageComponent({
+		filter: (i) =>
+			i.user.id === user.id && i.customId === `writeReview-${user.id}`,
+		time: 60000,
+	});
+
+	const reviewModalRow1 =
+		new ActionRowBuilder<TextInputBuilder>().addComponents(
+			new TextInputBuilder()
+				.setCustomId("reviewTitle")
+				.setPlaceholder("Review Title")
+				.setLabel("Title")
+				.setStyle(TextInputStyle.Short)
+				.setMaxLength(256)
+				.setRequired(true)
+		);
+
+	const reviewModalRow2 =
+		new ActionRowBuilder<TextInputBuilder>().addComponents(
+			new TextInputBuilder()
+				.setCustomId("reviewContent")
+				.setPlaceholder("Review Content")
+				.setLabel("Content")
+				.setStyle(TextInputStyle.Paragraph)
+				.setMaxLength(256)
+				.setRequired(true)
+		);
+
+	const reviewModalRow3 =
+		new ActionRowBuilder<TextInputBuilder>().addComponents(
+			new TextInputBuilder()
+				.setCustomId("reviewRating")
+				.setPlaceholder("Review Rating")
+				.setLabel("Rating")
+				.setStyle(TextInputStyle.Short)
+				.setMaxLength(1)
+				.setMinLength(1)
+				.setRequired(true)
+		);
+
+	const reviewModal = new ModalBuilder()
+		.setTitle("Create a Review")
+		.setCustomId(user ? `reviewModal-${user.id}` : "reviewModal")
+		.addComponents(reviewModalRow1, reviewModalRow2, reviewModalRow3);
+
+	if (data.anonymousReviews === true) {
+		const reviewModalRow4 =
+			new ActionRowBuilder<TextInputBuilder>().addComponents(
+				new TextInputBuilder()
+					.setCustomId("anonymous")
+					.setPlaceholder("Anonymous")
+					.setLabel("Anonymous (true/false)")
+					.setStyle(TextInputStyle.Short)
+					.setRequired(false)
+			);
+		reviewModal.addComponents(reviewModalRow4);
+	}
+
+	await button.showModal(reviewModal);
+
+	const modal = await button.awaitModalSubmit({
+		filter: (i) => i.customId === `reviewModal-${user.id}`,
+		time: 1000 * 60 * 5,
+	});
+
+	await modal.deferUpdate();
+
+	const title: string = modal.fields.getTextInputValue("reviewTitle");
+	const content: string = modal.fields.getTextInputValue("reviewContent");
+	const rating: string = modal.fields.getTextInputValue("reviewRating");
+	const anonymous: string = data.anonymousReviews
+		? modal.fields.getTextInputValue("anonymous")
+		: "false";
+
+	if (isNaN(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
+		await modal.followUp({
+			content: "The rating must be a number between 1 and 5.",
+			ephemeral: true,
+		});
+		return;
+	}
+
+	if (
+		anonymous &&
+		anonymous.toLowerCase() !== "true" &&
+		anonymous.toLowerCase() !== "false"
+	) {
+		await modal.followUp({
+			content: `Anonymous must be either true or false!`,
+			ephemeral: true,
+		});
+		return;
+	}
+
+	const isAnonymous: boolean = anonymous.toLowerCase() === "true";
+
+	await sendReview(
+		interaction,
+		title,
+		content,
+		Number(rating),
+		isAnonymous,
+		interaction.member as GuildMember
+	);
+
+	await interaction.editReply({
+		components: [],
 	});
 }

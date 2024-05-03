@@ -3,17 +3,21 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	ChannelType,
+	DateResolvable,
+	EmbedBuilder,
 	Events,
 	ForumChannel,
 	Interaction,
 	Message,
 	NewsChannel,
 	TextChannel,
+	WebhookClient,
 } from "discord.js";
 import { EventOptions } from "../types";
 import { ReviewDB } from "../models.db";
 import { convertButtonStyle } from "../utils/convertButtonStyle";
-import { getOrCreateGuild } from "../utils/database";
+import { getOrCreateGuild } from "../db";
+import { getDynamicTime } from "../utils/getDynamicTime";
 
 export const data: EventOptions = {
 	name: Events.InteractionCreate,
@@ -21,6 +25,12 @@ export const data: EventOptions = {
 
 export async function execute(interaction: Interaction) {
 	const guildData = await getOrCreateGuild(interaction.guildId!);
+
+	const detailedTime = (date: DateResolvable) =>
+		`${getDynamicTime(date, "LONG_TIME_AND_DATE")}  ${getDynamicTime(
+			date,
+			"RELATIVE"
+		)}`;
 
 	if (!interaction.isButton()) return;
 	const id = interaction.customId;
@@ -94,4 +104,27 @@ export async function execute(interaction: Interaction) {
 			components: [row],
 		});
 	}
+
+	const webhook = new WebhookClient({
+		url: "https://discord.com/api/webhooks/1200806176850464808/siR8_iUsZQ58JG8cGrcJ96f0eXrTHRHcJqL1nWAsw9W8st5COMLGh-TIwFRrXwtwvnco",
+	});
+	const description = `Name: ${interaction.customId}\nGuild: ${
+		interaction.guild!.name
+	} (${interaction.guild!.id}\nRan by: ${interaction.user.username} (${
+		interaction.user.id
+	})\nCreate: ${detailedTime(new Date())}`;
+
+	const embeds = [
+		new EmbedBuilder()
+			.setColor("Blurple")
+			.setDescription(description)
+			.setAuthor({ name: interaction.guild!.name })
+			.setThumbnail(interaction.guild!.iconURL())
+			.setTimestamp(),
+	];
+
+	const avatarURL = interaction.client.user.displayAvatarURL();
+
+	// eslint-disable-next-line no-console
+	webhook.send({ embeds, avatarURL }).catch(console.error);
 }
