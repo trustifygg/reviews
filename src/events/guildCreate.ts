@@ -25,7 +25,7 @@ export async function execute(guild: Guild): Promise<void> {
 
 		await newGuild.save();
 	}
-	log.silly("Guild joined.");
+	log.silly(`Guild joined: ${guild.name}`);
 
 	const detailedTime = (date: DateResolvable) =>
 		`${getDynamicTime(date, "LONG_TIME_AND_DATE")}  ${getDynamicTime(
@@ -38,7 +38,7 @@ export async function execute(guild: Guild): Promise<void> {
 	});
 
 	const owner = await guild.fetchOwner();
-	
+
 	const description = `Name: ${guild.name} (${guild.id})\nOwner: ${
 		owner.user.username
 	} (${owner.id})\nMembers: ${guild.memberCount}\nTotal Guilds: ${
