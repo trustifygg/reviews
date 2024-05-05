@@ -52,7 +52,7 @@ export async function execute(guild: Guild): Promise<void> {
 		new EmbedBuilder()
 			.setColor("Green")
 			.setDescription(description)
-			.setAuthor({ name: guild.name })
+			.setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
 			.setThumbnail(guild.iconURL())
 			.setTimestamp(),
 	];
