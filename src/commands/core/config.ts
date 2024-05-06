@@ -16,9 +16,13 @@ import {
 	strikethrough,
 	ModalBuilder,
 	TextInputBuilder,
+	GuildMember,
 } from "discord.js";
 import { createGuild, getOrCreateGuild } from "../../db";
 import { validateHTMLColorHex } from "validate-color";
+import { convertButtonStyle } from "../../utils/convertButtonStyle";
+import { botClient } from "../..";
+import { checkIfUserVoted } from "../../utils/hasVoted";
 
 export const data = new SlashCommandBuilder()
 	.setName("config")
@@ -39,6 +43,14 @@ export const data = new SlashCommandBuilder()
 						ChannelType.GuildAnnouncement,
 						ChannelType.GuildForum
 					)
+			)
+			.addBooleanOption((option) =>
+				option
+					.setName("panel")
+					.setDescription(
+						"Would you like to send a panel every time a review is created?"
+					)
+					.setRequired(false)
 			)
 	)
 	.addSubcommand((sub) =>
@@ -79,7 +91,8 @@ export const data = new SlashCommandBuilder()
 					.setRequired(true)
 					.setChoices(
 						{ name: "Enable", value: "yes" },
-						{ name: "Disable", value: "no" }
+						{ name: "Disable", value: "no" },
+						{ name: "Force Anonymous", value: "forceAnonymous" }
 					)
 			)
 	)
@@ -138,13 +151,104 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 	const { options } = interaction;
 	const data = await getOrCreateGuild(interaction.guildId!);
 
+	const bot = interaction.guild?.members.cache.get(
+		botClient.user!.id
+	) as GuildMember;
+
+	const supportRow: ActionRowBuilder<ButtonBuilder> =
+		new ActionRowBuilder<ButtonBuilder>().setComponents(
+			new ButtonBuilder()
+				.setLabel("Support server")
+				.setStyle(5)
+				.setURL("https://discord.gg/J9bTk96RRX")
+		);
+
+	const checkBotPermissions = async (
+		channel: TextChannel
+	): Promise<boolean> => {
+		if (
+			!bot
+				.permissionsIn(channel.id)
+				.has([
+					PermissionFlagsBits.SendMessages,
+					PermissionFlagsBits.AttachFiles,
+				])
+		) {
+			await interaction.reply({
+				content: `I am missing one or both of the following permissions in ${channel.toString()}:\n\n> - **Send Messages**\n> - **Attach Files**`,
+				components: [supportRow],
+				ephemeral: true,
+			});
+			return false;
+		}
+		return true;
+	};
+
 	switch (options.getSubcommand()) {
 		case "channel":
 			{
-				const channel: TextChannel | NewsChannel | ForumChannel =
-					options.getChannel("channel", true);
+				const channel = options.getChannel("channel", true) as TextChannel;
+				const panel = options.getBoolean("panel", false);
+
+				if (!channel && !(await checkBotPermissions(channel))) return;
+
 				data.channel = channel.id;
 				await data.save();
+
+				if (panel === true) {
+					const editPanelContentModal = new ModalBuilder()
+						.setTitle("Edit Panel Content")
+						.setCustomId("editPanelContentModal")
+						.setComponents(
+							new ActionRowBuilder<TextInputBuilder>().setComponents(
+								new TextInputBuilder()
+									.setLabel("Title")
+									.setCustomId("panelTitle")
+									.setPlaceholder("The title of the panel")
+									.setStyle(1)
+									.setValue("🌟 Leave us a Review! 🌟"),
+								new TextInputBuilder()
+									.setLabel("Description")
+									.setCustomId("panelDescription")
+									.setPlaceholder("The description of the panel")
+									.setStyle(1).setValue(`
+									Help us improve by sharing your valuable thoughts and experiences with Reviews. Click the button below to create your review and let us know what you love or any areas where we can enhance reviews.
+									`)
+							)
+						);
+
+					await interaction.showModal(editPanelContentModal);
+
+					const modal = await interaction.awaitModalSubmit({
+						filter: (i) => i.customId === "editPanelContentModal",
+						time: 1000 * 60 * 5,
+					});
+
+					const panelTitle = modal.fields.getTextInputValue("panelTitle");
+					const panelDescription =
+						modal.fields.getTextInputValue("panelDescription");
+
+					const panelEmbed = new EmbedBuilder()
+						.setColor("Blurple")
+						.setTitle(panelTitle)
+						.setDescription(panelDescription)
+						.setFooter({
+							text: "Reviews @ 2024",
+						});
+
+					const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+						new ButtonBuilder()
+							.setCustomId("writeReview")
+							.setLabel(data.customReviewButton.label)
+							.setStyle(convertButtonStyle(data.customReviewButton.color))
+					);
+
+					await channel.send({
+						embeds: [panelEmbed],
+						components: [row],
+					});
+				}
+
 				await interaction.reply({
 					content: `Reviews will now be sent to ${channel.toString()}`,
 					ephemeral: true,
@@ -193,14 +297,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		case "anonymous-reviews":
 			{
 				const toggle: string = options.getString("toggle", true);
-				data.anonymousReviews = toggle === "yes" ? true : false;
-				await data.save();
-				await interaction.reply({
-					content: `Anonymous reviews has been ${bold(
-						toggle === "yes" ? "Enabled" : "Disabled"
-					)}.`,
-					ephemeral: true,
-				});
+
+				if (toggle === "forceAnonymous") {
+					data.forceAnonymousReviews = !data.forceAnonymousReviews;
+					await data.save();
+					await interaction.reply({
+						content: `Reviews will now be forced to be anonymous.`,
+						ephemeral: true,
+					});
+				} else if (toggle === "yes" || toggle === "no") {
+					data.anonymousReviews = toggle === "yes" ? true : false;
+					await data.save();
+					await interaction.reply({
+						content: `Anonymous reviews has been ${bold(
+							toggle === "yes" ? "Enabled" : "Disabled"
+						)}.`,
+						ephemeral: true,
+					});
+				}
 			}
 			break;
 
@@ -242,6 +356,36 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 		case "customize":
 			{
+				if ((await checkIfUserVoted(interaction.user.id)) === false) {
+					return await interaction.reply({
+						embeds: [
+							new EmbedBuilder()
+								.setColor("Red")
+								.setTitle("🤚 Hold up right there!")
+								.setDescription(
+									`
+								This command requires that you vote for ${bot.toString()} on [top.gg](https://top.gg/bot/1198639435395375164/vote)
+								`
+								)
+								.addFields({
+									name: "Why should I vote?",
+									value: `
+									By voting you show your support to the bot and it also allows for the bot to increase it's reaching on top.gg and best of all is that it's free!
+										`,
+								}),
+						],
+						components: [
+							new ActionRowBuilder<ButtonBuilder>().setComponents(
+								new ButtonBuilder()
+									.setLabel("Vote to unlock feature")
+									.setURL("https://top.gg/bot/1198639435395375164/vote")
+									.setStyle(5)
+									.setEmoji("🔓")
+							),
+						],
+						ephemeral: true,
+					});
+				}
 				const customEmbedData = data.customEmbed;
 				const buttonData = data.customReviewButton;
 

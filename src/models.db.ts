@@ -1,4 +1,3 @@
-import { ButtonStyle } from "discord.js";
 import { Document, model, Schema } from "mongoose";
 
 export interface IGuild extends Document {
@@ -7,6 +6,7 @@ export interface IGuild extends Document {
 	logsChannel: string;
 	reviewRole: string;
 	anonymousReviews: boolean;
+	forceAnonymousReviews: boolean;
 	createThreads: boolean;
 	reviewButton: boolean;
 	ratingEmoji: string;
@@ -63,6 +63,7 @@ export const GuildDB = model<IGuild>(
 		logsChannel: { type: String },
 		reviewRole: { type: String },
 		anonymousReviews: { type: Boolean, default: true },
+		forceAnonymousReviews: { type: Boolean, default: false },
 		createThreads: { type: Boolean, default: false },
 		reviewButton: { type: Boolean, default: true },
 		ratingEmoji: { type: String, default: "⭐" },
