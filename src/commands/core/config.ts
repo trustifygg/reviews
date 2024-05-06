@@ -90,9 +90,9 @@ export const data = new SlashCommandBuilder()
 					)
 					.setRequired(true)
 					.setChoices(
-						{ name: "Enable", value: "yes" },
-						{ name: "Disable", value: "no" },
-						{ name: "Force Anonymous", value: "forceAnonymous" }
+						{ name: "Enable Anonymous Reviews", value: "yes" },
+						{ name: "Disable Anonymous Reviews", value: "no" },
+						{ name: "Force Anonymous Reviews", value: "forceAnonymous" }
 					)
 			)
 	)
@@ -199,21 +199,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					const editPanelContentModal = new ModalBuilder()
 						.setTitle("Edit Panel Content")
 						.setCustomId("editPanelContentModal")
-						.setComponents(
-							new ActionRowBuilder<TextInputBuilder>().setComponents(
+						.addComponents(
+							new ActionRowBuilder<TextInputBuilder>().addComponents(
 								new TextInputBuilder()
 									.setLabel("Title")
 									.setCustomId("panelTitle")
 									.setPlaceholder("The title of the panel")
 									.setStyle(1)
-									.setValue("🌟 Leave us a Review! 🌟"),
+									.setValue("🌟 Leave us a Review! 🌟")
+							),
+							new ActionRowBuilder<TextInputBuilder>().addComponents(
 								new TextInputBuilder()
 									.setLabel("Description")
 									.setCustomId("panelDescription")
 									.setPlaceholder("The description of the panel")
-									.setStyle(1).setValue(`
-									Help us improve by sharing your valuable thoughts and experiences with Reviews. Click the button below to create your review and let us know what you love or any areas where we can enhance reviews.
-									`)
+									.setStyle(1)
+									.setValue(
+										` Help us improve by sharing your valuable thoughts and experiences with Reviews. Click the button below to create your review and let us know what you love or any areas where we can enhance reviews. `
+									)
 							)
 						);
 
@@ -223,6 +226,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 						filter: (i) => i.customId === "editPanelContentModal",
 						time: 1000 * 60 * 5,
 					});
+
+					await modal.deferUpdate();
 
 					const panelTitle = modal.fields.getTextInputValue("panelTitle");
 					const panelDescription =
@@ -302,7 +307,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					data.forceAnonymousReviews = !data.forceAnonymousReviews;
 					await data.save();
 					await interaction.reply({
-						content: `Reviews will now be forced to be anonymous.`,
+						content:
+							data.forceAnonymousReviews === true
+								? `Reviews will now be forced to be anonymous.`
+								: "Reviews are no longer forced to be anonymous.",
 						ephemeral: true,
 					});
 				} else if (toggle === "yes" || toggle === "no") {

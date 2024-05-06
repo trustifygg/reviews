@@ -79,20 +79,25 @@ export const sendReview = async (
 			.setStyle(ButtonStyle.Secondary)
 	);
 
+	const checkAnonymous = (): boolean => {
+		if (anonymous && data.anonymousReviews === true) return true;
+		if (data.anonymousReviews === false) return false;
+		if (data.forceAnonymousReviews === true) return true;
+		return false;
+	};
+
 	const reviewEmbed = new EmbedBuilder()
 		.setColor(data.customEmbed.color as ColorResolvable)
 		.setAuthor({
-			name:
-				anonymous && data.anonymousReviews === true
-					? `New Anonymous Review`
-					: `New Review by ${interaction.user.username}`,
-			iconURL:
-				anonymous && data.anonymousReviews === true
-					? "https://cdn.discordapp.com/attachments/1187454852985524365/1187837153691041914/anonymous.png?ex=6598568e&is=6585e18e&hm=4cf19e76c9bb3dee1802383196719c23983294c55ac93b0c1d7ea22a0284d1cd&"
-					: interaction.user.displayAvatarURL(),
+			name: checkAnonymous()
+				? `New Anonymous Review`
+				: `New Review by ${interaction.user.username}`,
+			iconURL: checkAnonymous()
+				? "https://cdn.discordapp.com/attachments/1187454852985524365/1187837153691041914/anonymous.png?ex=6598568e&is=6585e18e&hm=4cf19e76c9bb3dee1802383196719c23983294c55ac93b0c1d7ea22a0284d1cd&"
+				: interaction.user.displayAvatarURL(),
 		})
 		.setThumbnail(
-			anonymous
+			checkAnonymous()
 				? "https://cdn.discordapp.com/attachments/1187454852985524365/1187837153691041914/anonymous.png?ex=6598568e&is=6585e18e&hm=4cf19e76c9bb3dee1802383196719c23983294c55ac93b0c1d7ea22a0284d1cd&"
 				: interaction.user.displayAvatarURL()
 		)
