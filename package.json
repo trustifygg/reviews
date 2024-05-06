@@ -1,7 +1,7 @@
 {
 	"name": "reviews",
 	"description": "Reviews bot",
-	"version": "1.5.2",
+	"version": "1.5.3",
 	"main": "src/index.ts",
 	"scripts": {
 		"start": "ts-node src/index.ts",
