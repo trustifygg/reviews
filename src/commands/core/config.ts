@@ -7,6 +7,7 @@ import {
 	ForumChannel,
 	NewsChannel,
 	Role,
+	bold,
 } from "discord.js";
 import { createGuild, getOrCreateGuild } from "../../db";
 
@@ -149,9 +150,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 			}
 			break;
 
-		case "role":
+		case "review-role":
 			{
-				const role: Role = options.getRole("role", true) as Role;
+				const role = options.getRole("role", true) as Role;
 				data.reviewRole = role.id;
 				await data.save();
 				await interaction.reply({
@@ -161,57 +162,45 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 			}
 			break;
 
+		case "review-button":
+			{
+				const toggle: string = options.getString("toggle", true);
+				data.reviewButton = toggle === "yes" ? true : false;
+				await data.save();
+				await interaction.reply({
+					content: `The review button has been ${bold(
+						toggle === "yes" ? "Enabled" : "Disabled"
+					)}.`,
+					ephemeral: true,
+				});
+			}
+			break;
+
 		case "anonymous-reviews":
 			{
 				const toggle: string = options.getString("toggle", true);
-				if (toggle === "yes") {
-					data.anonymousReviews = true;
-					await data.save();
-					await interaction.reply({
-						content: "Anonymous reviews have been enabled.",
-						ephemeral: true,
-					});
-				} else if (toggle === "no") {
-					data.anonymousReviews = false;
-					await data.save();
-					await interaction.reply({
-						content: "Anonymous reviews have been disabled.",
-						ephemeral: true,
-					});
-				} else {
-					await interaction.reply({
-						content:
-							"You need to type 'yes' to enable anonymous reviews or 'no' to disable them.",
-						ephemeral: true,
-					});
-				}
+				data.anonymousReviews = toggle === "yes" ? true : false;
+				await data.save();
+				await interaction.reply({
+					content: `Anonymous reviews has been ${bold(
+						toggle === "yes" ? "Enabled" : "Disabled"
+					)}.`,
+					ephemeral: true,
+				});
 			}
 			break;
 
 		case "threads":
 			{
 				const toggle: string = options.getString("toggle", true);
-				if (toggle === "yes") {
-					data.createThreads = true;
-					await data.save();
-					await interaction.reply({
-						content: "Threads have been enabled.",
-						ephemeral: true,
-					});
-				} else if (toggle === "no") {
-					data.createThreads = false;
-					await data.save();
-					await interaction.reply({
-						content: "Threads have been disabled.",
-						ephemeral: true,
-					});
-				} else {
-					await interaction.reply({
-						content:
-							"You need to type 'yes' to enable threads or 'no' to disable them.",
-						ephemeral: true,
-					});
-				}
+				data.createThreads = toggle === "yes" ? true : false;
+				await data.save();
+				await interaction.reply({
+					content: `Threads have been ${bold(
+						toggle === "yes" ? "Enabled" : "Disabled"
+					)}.`,
+					ephemeral: true,
+				});
 			}
 			break;
 
