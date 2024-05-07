@@ -8,6 +8,7 @@ import {
 import { log } from "..";
 import { getDynamicTime } from "../utils/getDynamicTime";
 import { botClient as client } from "..";
+import { GuildDB } from "../models.db";
 
 export const data = {
 	name: Events.GuildDelete,
@@ -15,6 +16,8 @@ export const data = {
 
 export async function execute(guild: Guild): Promise<void> {
 	log.silly(`Guild left: ${guild.name}`);
+
+	await GuildDB.deleteOne({ guildId: guild.id });
 
 	const detailedTime = (date: DateResolvable) =>
 		`${getDynamicTime(date, "LONG_TIME_AND_DATE")}  ${getDynamicTime(
