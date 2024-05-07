@@ -44,7 +44,11 @@ export async function execute(guild: Guild): Promise<void> {
 		new EmbedBuilder()
 			.setColor("Red")
 			.setDescription(description)
-			.setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
+			.setAuthor({
+				name: guild.name,
+				iconURL:
+					guild.iconURL() || "https://cdn.discordapp.com/embed/avatars/0.png",
+			})
 			.setThumbnail(guild.iconURL())
 			.setTimestamp(),
 	];
