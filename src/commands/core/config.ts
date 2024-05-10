@@ -311,7 +311,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					await interaction.reply({
 						content:
 							data.forceAnonymousReviews === true
-								? `Reviews will now be forced to be anonymous.`
+								? `Reviews will now be forced to be anonymous. To remove it run the command again and select the same option.`
 								: "Reviews are no longer forced to be anonymous.",
 						components: [supportRow],
 						ephemeral: true,
