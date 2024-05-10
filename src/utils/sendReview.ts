@@ -58,7 +58,13 @@ export const sendReview = async (
 	const ratingStr: string = getRating(rating);
 
 	const row: ActionRowBuilder<ButtonBuilder> =
-		new ActionRowBuilder<ButtonBuilder>();
+		new ActionRowBuilder<ButtonBuilder>().setComponents(
+			new ButtonBuilder()
+				.setCustomId(`useful-${reviewId}`)
+				.setLabel(`Useful (0)`)
+				.setEmoji("👍")
+				.setStyle(ButtonStyle.Secondary)
+		);
 
 	const reviewButton: boolean = data.reviewButton;
 
@@ -70,14 +76,6 @@ export const sendReview = async (
 				.setStyle(convertButtonStyle(data.customReviewButton.color))
 		);
 	}
-
-	row.addComponents(
-		new ButtonBuilder()
-			.setCustomId(`useful-${reviewId}`)
-			.setLabel(`Useful (0)`)
-			.setEmoji("👍")
-			.setStyle(ButtonStyle.Secondary)
-	);
 
 	const checkAnonymous = (): boolean => {
 		if (anonymous && data.anonymousReviews === true) return true;
@@ -123,7 +121,6 @@ export const sendReview = async (
 		reviewEmbed.setImage(image);
 	}
 
-	let newReview: IReview | null = null;
 	let m: string = "";
 
 	if (

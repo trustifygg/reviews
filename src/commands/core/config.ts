@@ -4,8 +4,6 @@ import {
 	PermissionFlagsBits,
 	ChannelType,
 	TextChannel,
-	ForumChannel,
-	NewsChannel,
 	Role,
 	bold,
 	ActionRowBuilder,
@@ -256,6 +254,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 				await interaction.reply({
 					content: `Reviews will now be sent to ${channel.toString()}`,
+					components: [supportRow],
 					ephemeral: true,
 				});
 			}
@@ -268,6 +267,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 				await data.save();
 				await interaction.reply({
 					content: `Logs will now be sent to ${channel.toString()}`,
+					components: [supportRow],
 					ephemeral: true,
 				});
 			}
@@ -280,6 +280,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 				await data.save();
 				await interaction.reply({
 					content: `Reviews will now require the role ${role.toString()}`,
+					components: [supportRow],
 					ephemeral: true,
 				});
 			}
@@ -294,6 +295,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					content: `The review button has been ${bold(
 						toggle === "yes" ? "Enabled" : "Disabled"
 					)}.`,
+					components: [supportRow],
 					ephemeral: true,
 				});
 			}
@@ -311,6 +313,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 							data.forceAnonymousReviews === true
 								? `Reviews will now be forced to be anonymous.`
 								: "Reviews are no longer forced to be anonymous.",
+						components: [supportRow],
 						ephemeral: true,
 					});
 				} else if (toggle === "yes" || toggle === "no") {
@@ -320,6 +323,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 						content: `Anonymous reviews has been ${bold(
 							toggle === "yes" ? "Enabled" : "Disabled"
 						)}.`,
+						components: [supportRow],
 						ephemeral: true,
 					});
 				}
@@ -335,6 +339,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 					content: `Threads have been ${bold(
 						toggle === "yes" ? "Enabled" : "Disabled"
 					)}.`,
+					components: [supportRow],
 					ephemeral: true,
 				});
 			}
@@ -346,6 +351,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 				if (confirm !== "confirm") {
 					await interaction.reply({
 						content: "You need to type 'confirm' to reset the configuration.",
+						components: [supportRow],
 						ephemeral: true,
 					});
 					return;
@@ -357,6 +363,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 				await interaction.reply({
 					content: "The configuration has been reset.",
+					components: [supportRow],
 					ephemeral: true,
 				});
 			}
