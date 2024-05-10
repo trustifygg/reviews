@@ -13,18 +13,11 @@ export interface IGuild extends Document {
 	reviewTitle: string;
 	customEmbed: ICustomEmbed;
 	customReviewButton: ICustomButton;
-	reviewStats: IReviewStats;
 }
 
 export interface IUser extends Document {
 	userId: string;
 	reviews: string[];
-}
-
-export interface IReviewStats {
-	category: string;
-	totalReviewsChannel: string;
-	averageRatingChannel: string;
 }
 
 export interface ICustomEmbed {
@@ -85,11 +78,7 @@ export const GuildDB = model<IGuild>(
 			default: {
 				color: "#5865F2",
 			},
-		},
-		reviewStats: {
-			totalReviewsChannel: { type: String, default: null },
-			averageRatingChannel: { type: String, default: null },
-		},
+		}
 	}),
 	"Guilds"
 );
