@@ -78,7 +78,7 @@ export const GuildDB = model<IGuild>(
 			default: {
 				color: "#5865F2",
 			},
-		}
+		},
 	}),
 	"Guilds"
 );

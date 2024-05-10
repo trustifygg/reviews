@@ -18,10 +18,10 @@ export async function execute(client: Client): Promise<void> {
 		client.user?.setPresence({
 			activities: [
 				{
-					name: `${await ReviewDB.countDocuments()} reviews`,
-					type: ActivityType.Watching
-				}
-			]
+					name: `${(await ReviewDB.countDocuments()).toLocaleString()} reviews`,
+					type: ActivityType.Watching,
+				},
+			],
 		});
 	}, 10000);
 

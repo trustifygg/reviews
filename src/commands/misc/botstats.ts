@@ -44,7 +44,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		.setTitle("Reviews' Stats")
 		.setDescription(
 			`**Server Count**: \`${serverCount}\`\n` +
-				`**Total Reviews**: \`${reviews}\`\n` +
+				`**Total Reviews**: \`${reviews.toLocaleString()}\`\n` +
 				`**Library**: \`Discord.js (v${libraryVersion})\`\n` +
 				`**Bot Version**: \`${botVersion}\`\n` +
 				`**Ping**: \`${ping}ms\`\n` +
