@@ -1,13 +1,14 @@
 {
-  "name": "ts-template",
-  "version": "1.0.0",
+  "name": "reviews",
+  "version": "2.0.0-a.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/index.ts",
+    "dev": "nodemon src/index.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Fraimer",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^14.15.3",
