@@ -11,12 +11,18 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@imranbarbhuiya/duration": "^5.1.8",
+		"colorette": "^2.0.20",
 		"discord.js": "^14.15.3",
 		"dotenv": "^16.4.5",
+		"figlet": "^1.8.0",
+		"gradient-string": "^3.0.0",
+		"mongoose": "^8.7.1",
 		"nodemon": "^3.1.4",
 		"typescript": "^5.5.2"
 	},
 	"devDependencies": {
+		"@types/figlet": "^1.7.0",
 		"ts-node": "^10.9.2"
 	}
 }
