@@ -1,0 +1,28 @@
+{
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit",
+		"source.organizeImports": "never"
+	},
+	"eslint.validate": ["typescript"],
+	"editor.detectIndentation": true,
+	"files.eol": "\n",
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/.yarn": true,
+		"**/dist/": true,
+		"**/.git/": true
+	},
+	"cSpell.words": [
+		"Automod",
+		"buttonrole",
+		"Cooldown",
+		"decancer",
+		"deletable",
+		"modonly",
+		"modrole",
+		"removeall",
+		"roti",
+		"selectrole",
+		"tagscript"
+	]
+}

@@ -1,0 +1,23 @@
+{
+	"root": true,
+	"extends": ["mahir/common", "mahir/node", "mahir/typescript", "mahir/prettier", "mahir/no-deprecated"],
+	"ignorePatterns": ["**/dist/*"],
+	"rules": {
+		"no-console": "error",
+		"import/extensions": "off",
+		"id-length": "off",
+		"promise/prefer-await-to-then": "off",
+		"promise/prefer-await-to-callbacks": "off",
+		"unicorn/prefer-number-properties": "off",
+		"@typescript-eslint/no-base-to-string": "off",
+		"@typescript-eslint/method-signature-style": "off",
+		"@typescript-eslint/no-require-imports": "off",
+		"@typescript-eslint/no-var-requires": "off",
+		"no-param-reassign": "off",
+		"prefer-named-capture-group": "off",
+		"require-atomic-updates": "off",
+		"no-sequences": "off",
+		"@typescript-eslint/no-dynamic-delete": "off",
+		"n/no-sync": "off"
+	}
+}

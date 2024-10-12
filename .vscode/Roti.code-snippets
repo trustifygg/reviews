@@ -1,0 +1,22 @@
+{
+	"Command": {
+		"scope": "typescript",
+		"prefix": "command",
+		"body": [
+			"import { SlashCommandBuilder, type ChatInputCommandInteraction, type Message } from 'discord.js';",
+			"",
+			"import { ApplyCommandOption, Command } from '#structure/Command';",
+			"",
+			"@ApplyCommandOption(",
+			"\t\tnew SlashCommandBuilder().setName('$TM_FILENAME_BASE').setDescription('$2'),",
+			"{usage: '`{p}$TM_FILENAME_BASE'` $3',}",
+			")",
+			"export class UserCommand extends Command {",
+			"\tprotected override async runTask(messageOrInteraction: ChatInputCommandInteraction<'cached'> | Message<true>, options: Command.ChatInputOptions) {",
+			"\t\treturn $3;",
+			"\t}",
+			"}",
+		],
+		"description": "Creates a Command",
+	},
+}

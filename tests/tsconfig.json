@@ -1,0 +1,20 @@
+{
+	"extends": "../tsconfig.base.json",
+	"references": [{ "path": "../src/" }],
+	"compilerOptions": {
+		"rootDir": "./",
+		"paths": {
+			"#util/*": ["../src/lib/utils/*.ts"],
+			"#structure/*": ["../src/lib/structures/*.ts"],
+			"#manager/*": ["../src/lib/manager/*.ts"],
+			"#lib/*": ["../src/lib/*.ts"],
+			"#model/*": ["../src/models/*.ts"],
+			"#types/*": ["../src/types/*"],
+			"#commands/*": ["../src/commands/*.ts"],
+			"#root/*": ["../src/*.ts"],
+			"#controller/*": ["../src/controller/*.ts"]
+		},
+		"types": ["vitest/globals"]
+	},
+	"include": ["."]
+}
