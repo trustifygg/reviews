@@ -1,6 +1,8 @@
-declare module 'dotenv' {
+import type { BooleanString } from '@skyra/env-utilities';
+
+declare module '@skyra/env-utilities' {
 	interface Env {
-		DEBUG: boolean;
+		DEBUG: BooleanString;
 		DISCORD_TOKEN: string;
 		ERROR_WEBHOOK_URL: string;
 		MONGODB_SRV: string;

@@ -1,6 +1,6 @@
 import type { ClientEvents } from '#types/events';
 
-import { settingsModel } from '#model/settings';
+import { settingsModel } from '#model/guild';
 
 const guildCreateEvent: ClientEvents['GuildCreate'] = async (guild) => {
 	const data = await settingsModel.findOne({ guildId: guild.id });

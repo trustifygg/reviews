@@ -10,12 +10,10 @@ import { Constants } from './constants';
 import { syncCommands } from './syncCommand';
 
 import { cooldown } from '../../controller/cooldown';
-import { havePermission } from '../../controller/permission';
 
 import type { ContextMenuMessageCommand, ContextMenuUserCommand } from '#types/command';
 import type { Command } from '../structures/Command';
 
-import { settingsModel } from '#model/settings';
 
 export const verifyCommand = async (
 	interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction,
@@ -63,12 +61,7 @@ export const verifyCommand = async (
 	}
 
 	if (interaction.inCachedGuild()) {
-		const data = await settingsModel
-			.findOne({
-				guildId: interaction.guild.id,
-			})
-			.lean();
-		if (!(await havePermission(interaction, command, data?.modrole))) return false;
+		// DO SOMETHING
 	} else if (interaction.inGuild()) {
 		await interaction.reply({
 			content: "This server isn't cached yet. Try again later.",

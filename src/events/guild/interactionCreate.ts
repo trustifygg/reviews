@@ -4,18 +4,21 @@ import type { GuildEvents } from '#types/events';
 
 import { exitButtonHandler } from '#util/buttons';
 import { verifyCommand } from '#util/verifyCommand';
+import { syncCommands } from '#util/syncCommand';
 
 const interactionCreateEvent: GuildEvents['InteractionCreate'] = async (interaction) => {
 	if (!interaction.client.isReady() || interaction.client.uptime < 5_000) return;
 	if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
 		const command = interaction.client.chatInputCommands.get(interaction.commandName);
-		if (!command) return;
+		if (!command) {
+			return await syncCommands(interaction.client);
+		}
 
 		await command.autocompleteRun(interaction, interaction.options, interaction.client);
 	} else if (interaction.isChatInputCommand()) {
 		const command = interaction.client.chatInputCommands.get(interaction.commandName);
 		if (!(await verifyCommand(interaction, command, interaction.client)) || !command) {
-			return;
+			return await syncCommands(interaction.client);
 		}
 
 		try {
