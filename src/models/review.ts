@@ -1,6 +1,25 @@
-import { model, Schema, type InferSchemaType } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-const reviewSchema = new Schema({
+export type IReview = {
+	userId: string;
+	guildId: string;
+	reviewId: string;
+	messageId: string;
+	authorId: string;
+	threadId: string;
+	title: string;
+	review: string;
+	rating: number;
+	useful: IUseful;
+	attachment: string;
+};
+
+interface IUseful {
+	count: number;
+	voted: string[];
+}
+
+const reviewSchema = new Schema<IReview>({
 	userId: { type: String },
 	guildId: { type: String },
 	reviewId: { type: String, unique: true },
@@ -18,5 +37,3 @@ const reviewSchema = new Schema({
 });
 
 export const reviewModel = model('ReviewDB', reviewSchema, 'Reviews');
-
-export type IReview = InferSchemaType<typeof reviewSchema>;

@@ -26,25 +26,17 @@ manager.on('clusterCreate', cluster => {
 });
 
 
-import Express from 'express';
-import { statisticsModel } from "#model/statistics";
+import express from 'express';
+import cors from "cors";
+import router from "./api/routes";
 
-const app = Express();
+const app = express();
 
-app.use(Express.json());
-app.use(Express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
-const authMiddleware = (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
-	const refererHeader = req.headers.Referer as string;
-	if (refererHeader) {
-		const referer = new URL(refererHeader);
-		if (referer.hostname === 'rotibot.xyz') return next();
-	} else {
-		return res.redirect('https://rotibot.xyz/');
-	}
-};
-
-if (isProductionMode) app.use(authMiddleware);
+app.use("/api", router);
 
 let resultCache: { time: null | number; result: null | object } = { time: null, result: null };
 
@@ -67,15 +59,15 @@ app.get('/api/status', async (_req, res) => {
 	res.status(200).send(resultCache.result);
 });
 
-app.get('/api/statistics/:guildId', async (req, res) => {
-	const guildId = req.params.guildId;
+// app.get('/api/statistics/:guildId', async (req, res) => {
+// 	const guildId = req.params.guildId;
 
-	const data = await statisticsModel.find({
-		guildId,
-	});
+// 	const data = await statisticsModel.find({
+// 		guildId,
+// 	});
 
-	res.status(200).send(data);
-});
+// 	res.status(200).send(data);
+// });
 
 manager.spawn({ timeout: 10 * 1000 })
 	.then(() => {
