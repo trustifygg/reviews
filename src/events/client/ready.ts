@@ -31,7 +31,7 @@ const readyEvent: ClientEvents['Ready'] = async (client) => {
 	);
 	void sendStatus(client);
 
-	client.user.setActivity(`/help or r!help | Cluster ${client.cluster.id}`, {
+	client.user.setActivity(`/review | Cluster ${client.cluster.id}`, {
 		type: ActivityType.Listening as number,
 	});
 };
