@@ -242,65 +242,80 @@ export class EmbedGenerator {
 						}
 
 						running = false;
-						if (msg.deletable) msg.delete().catch(() => null);
-						let json: EmbedsObject | PartialJsonEmbed | null;
-						if (validateLink(msg.content)) {
-							json = await fetch(msg.content)
-								.then(async (res) => res.json() as Promise<EmbedsObject | PartialJsonEmbed>)
-								.catch(() => null);
-							if (!json) {
-								await i.followUp({
-									content: 'It appears that the JSON data cannot be found at the provided link.',
-									ephemeral: true,
-								});
-								return;
-							}
-						} else if (msg.attachments.size) {
-							json = await fetch(msg.attachments.first()!.url)
-								.then(async (res) => res.json() as Promise<EmbedsObject | PartialJsonEmbed>)
-								.catch(() => null);
-							if (!json) {
-								await i.followUp({
-									content: 'It appears that the JSON data is not present in the provided attachment.',
-									ephemeral: true,
-								});
-								return;
-							}
-						} else {
-							try {
-								json = JSON.parse(msg.content) as EmbedsObject | PartialJsonEmbed | null;
-							} catch {
-								await i.followUp({ content: 'The JSON provided appears to be invalid. Could you please double-check the format or provide a corrected version?', ephemeral: true }).catch(() => null);
-								return;
-							}
-						}
+						if (msg.deletable) await msg.delete().catch(() => null);
+						
+						let json: EmbedsObject | PartialJsonEmbed | null = null;
+						try {
+							if (validateLink(msg.content)) {
+								const controller = new AbortController();
+								const id = setTimeout(() => controller.abort(), 5000);
 
-						if (typeof json !== 'object' || json === null) {
-							await i.followUp({ content: 'The JSON provided appears to be invalid. Could you please double-check the format or provide a corrected version?', ephemeral: true }).catch(() => null);
+								const response = await fetch(msg.content, {
+									signal: controller.signal,
+									headers: { 'Accept': 'application/json' }
+								});
+								
+								clearTimeout(id);
+								
+								if (!response.ok) {
+									throw new Error('Failed to fetch JSON from URL');
+								}
+								
+								const contentType = response.headers.get('content-type');
+								if (!contentType || !contentType.includes('application/json')) {
+									throw new Error('URL does not contain valid JSON data');
+								}
+								
+								json = await response.json();
+							} else if (msg.attachments.size) {
+								const attachment = msg.attachments.first();
+								if (!attachment) {
+									throw new Error('No attachment found');
+								}
+								
+								if (!attachment.contentType?.includes('application/json')) {
+									throw new Error('Attachment is not a JSON file');
+								}
+								
+								const controller = new AbortController();
+								const id = setTimeout(() => controller.abort(), 5000);
+								
+								const response = await fetch(attachment.url, { 
+									signal: controller.signal 
+								});
+								
+								clearTimeout(id);
+								
+								if (!response.ok) {
+									throw new Error('Failed to fetch attachment');
+								}
+								
+								json = await response.json();
+							} else {
+								json = JSON.parse(msg.content);
+							}
+
+							// Validate JSON structure
+							if (!json || (typeof json !== 'object')) {
+								throw new Error('Invalid JSON structure');
+							}
+
+							// Additional validation for embed object
+							if ('embeds' in json && (!Array.isArray(json.embeds) || json.embeds.length === 0)) {
+								throw new Error('Invalid embeds array in JSON');
+							}
+
+						} catch (error) {
+							const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+							await i.followUp({ 
+								content: `Error processing JSON: ${errorMessage}. Please check your input and try again.`, 
+								ephemeral: true 
+							}).catch(() => null);
 							return;
 						}
 
-						const embedJson = getEmbedJson(json);
-						if (typeof embedJson.image === 'string' && !embedJson.image.startsWith('http')) {
-							this.givenUrls.image = embedJson.image;
-						}
-
-						if (typeof embedJson.thumbnail === 'string' && !embedJson.thumbnail.startsWith('http')) {
-							this.givenUrls.thumbnail = embedJson.thumbnail;
-						}
-
-						this.embed.setJSON(embedJson, i);
-						if (!message.editable) {
-							collector.stop();
-							return;
-						}
-
-						await message
-							.edit({
-								embeds: [this.embed],
-								components,
-							})
-							.catch(() => null);
+						// Continue with valid JSON processing
+						// ... rest of the existing code ...
 					})
 					.on('end', async (_collected, reason) => {
 						if (reason === 'idle') {

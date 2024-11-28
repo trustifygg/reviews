@@ -6,7 +6,7 @@ const userSchema = new Schema({
 	avatarHash: { type: String, default: null },
 	accessToken: { type: String, required: true },
 	refreshToken: { type: String, required: true },
-});
+}, { timestamps: true});
 
 export const userModel = model('UserDB', userSchema, 'Users');
 

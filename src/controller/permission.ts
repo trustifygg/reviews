@@ -16,101 +16,95 @@ const formatPerms = (missingPerms: PermissionResolvable[]) => {
 };
 
 export const havePermission = async (
-	context: ChatInputCommandInteraction<'cached'> | ContextMenuCommandInteraction<'cached'> | Message<true>,
-	command: CommonCommand,
-	modrole?: string | null
+	interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction | Message,
+	command: CommonCommand
 ): Promise<boolean> => {
+	if (!interaction.guild) return true;
 
+	try {
+		const member = 'member' in interaction ? interaction.member : interaction.guild.members.cache.get(interaction.author.id);
+		if (!member) return false;
 
-	if (command.botPermissions?.length) {
-		const missingPerms: PermissionResolvable[] = [];
-		for (const permission of command.botPermissions) {
-			if (!context.guild.members.me?.permissions.has(permission)) {
-				missingPerms.push(permission);
-			}
-		}
-
-		if (missingPerms.length) {
-			await context.reply({
-				content: `I don't have ${formatPerms(missingPerms)} permission(s)`,
-				ephemeral: true,
+		// Check if command is owner only
+		if (command.ownerOnly && !command.owners?.includes(member.user.id)) {
+			await interaction.reply({
+				content: 'This command is restricted to bot owners only.',
+				ephemeral: true
 			});
 			return false;
 		}
-	}
 
-	if (command.botChannelPermissions?.length) {
-		const missingPerms: PermissionResolvable[] = [];
-		for (const permission of command.botChannelPermissions) {
-			if (!context.guild.members.me?.permissionsIn(context.channel!).has(permission)) {
-				missingPerms.push(permission);
+		// Check user permissions
+		if (command.userPermissions?.length) {
+			const missingPerms = member.permissions instanceof PermissionsBitField
+				? command.userPermissions.filter(perm => !member.permissions.has(perm))
+				: [];
+
+			if (missingPerms.length) {
+				await interaction.reply({
+					content: `You need the following permissions to use this command:${formatPerms(missingPerms)}`,
+					ephemeral: true
+				});
+				return false;
 			}
 		}
 
-		if (missingPerms.length) {
-			await context.reply({
-				content: `I don't have ${formatPerms(missingPerms)} permission(s) in this channel`,
-				ephemeral: true,
-			});
-			return false;
-		}
-	}
+		// Check bot permissions
+		if (command.botPermissions?.length) {
+			const bot = interaction.guild.members.me;
+			if (!bot) return false;
 
-	if (command.userChannelPermissions?.length) {
-		if (
-			(command.category === 'moderation' || command.modrole) &&
-			modrole &&
-			!command.adminOnly &&
-			context.member!.roles.cache.has(modrole)
-		) {
-			return true;
-		}
-
-		const missingPerms: PermissionResolvable[] = [];
-		for (const permission of command.userChannelPermissions) {
-			if (!context.member!.permissionsIn(context.channel!).has(permission)) {
-				missingPerms.push(permission);
+			const missingPerms = command.botPermissions.filter(perm => !bot.permissions.has(perm));
+			if (missingPerms.length) {
+				await interaction.reply({
+					content: `I need the following permissions to execute this command:${formatPerms(missingPerms)}`,
+					ephemeral: true
+				});
+				return false;
 			}
 		}
 
-		if (missingPerms.length) {
-			await context.reply({
-				content: `You don't have ${formatPerms(missingPerms)} permission(s) in this channel`,
-				ephemeral: true,
-			});
-			return false;
-		}
-	}
+		// Check channel-specific permissions
+		if (command.botChannelPermissions?.length || command.userChannelPermissions?.length) {
+			const channel = 'channel' in interaction ? interaction.channel : null;
+			if (!channel) return false;
 
-	if (command.userPermissions?.length) {
-		if ((command.category === 'moderation' || command.modrole) && modrole && context.member!.roles.cache.has(modrole)) {
-			return true;
-		}
+			if (command.botChannelPermissions?.length) {
+				const botPerms = channel.permissionsFor(interaction.guild.members.me!);
+				if (!botPerms) return false;
 
-		if (
-			command.category === 'giveaway' &&
-			context.member!.roles.cache.some((r) => r.name.toLowerCase() === 'giveaway manager')
-		) {
-			return true;
-		}
+				const missingPerms = command.botChannelPermissions.filter(perm => !botPerms.has(perm));
+				if (missingPerms.length) {
+					await interaction.reply({
+						content: `I need the following channel permissions to execute this command:${formatPerms(missingPerms)}`,
+						ephemeral: true
+					});
+					return false;
+				}
+			}
 
-		const missingPerms: PermissionResolvable[] = [];
-		const userPerms = typeof command.userPermissions === 'string' ? [command.userPermissions] : command.userPermissions;
-		for (const permission of userPerms) {
-			const _permission = typeof permission === 'string' ? BigInt(permission) : permission;
-			if (!context.member!.permissions.has(_permission)) {
-				missingPerms.push(_permission);
+			if (command.userChannelPermissions?.length) {
+				const userPerms = channel.permissionsFor(member);
+				if (!userPerms) return false;
+
+				const missingPerms = command.userChannelPermissions.filter(perm => !userPerms.has(perm));
+				if (missingPerms.length) {
+					await interaction.reply({
+						content: `You need the following channel permissions to use this command:${formatPerms(missingPerms)}`,
+						ephemeral: true
+					});
+					return false;
+				}
 			}
 		}
 
-		if (missingPerms.length === userPerms.length) {
-			await context.reply({
-				content: `You don't have ${formatPerms(missingPerms)} permission(s)`,
-				ephemeral: true,
-			});
-			return false;
-		}
+		return true;
+	} catch (error) {
+		console.error('Permission check error:', error);
+		await interaction.reply({
+			content: 'An error occurred while checking permissions. Please try again later.',
+			ephemeral: true
+		}).catch(() => null);
+		return false;
 	}
-
-	return true;
 };

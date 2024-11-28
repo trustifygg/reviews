@@ -6,6 +6,7 @@ export const Constants = {
 	primaryColor: 0x8f7cfc,
 	// server invite link
 	supportInviteLink: 'https://discord.gg/w5b7dYRMZH',
+	DISCORD_ENDPOINT: 'https://discord.com/api/v10',
 
 	// emoji setup
 	emojis: {

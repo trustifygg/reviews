@@ -7,6 +7,8 @@ const guildCreateEvent: ClientEvents['GuildCreate'] = async (guild) => {
 	if (data) return;
 	await guildModel.create({
 		guildId: guild.id,
+		name: guild.name,
+		iconURL: guild.iconURL(),
 	});
 };
 

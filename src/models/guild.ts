@@ -2,6 +2,8 @@ import { model, Schema, type InferSchemaType } from 'mongoose';
 
 const guildSchema = new Schema({
 	guildId: { type: String, unique: true, required: true },
+	name: { type: String },
+	iconURL: { type: String },
 	channel: { type: String },
 	logsChannel: { type: String },
 	reviewRole: { type: String },

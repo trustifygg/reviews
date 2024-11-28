@@ -12,6 +12,7 @@ const startupOptions = !isProductionMode
 	? {
 			totalShards: 1,
 			shardsPerClusters: 1,
+			
 		}
 	: { totalShards: 32, shardsPerClusters: 8 };
 
@@ -30,20 +31,18 @@ manager.on('clusterCreate', (cluster) => {
 
 import express from 'express';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import router from './api/routes';
-import middlewares from './api/middlewares';
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
-app.use(cookieParser());
-app.use(middlewares);
-
-app.use('/api', router);
-
+app
+	.use(express.json())
+	.use(express.urlencoded({ extended: true }))
+	.use(
+		cors({
+			credentials: true,
+			origin: 'http://localhost:3000',
+		})
+	);
 
 let resultCache: { time: null | number; result: null | object } = { time: null, result: null };
 
@@ -53,16 +52,80 @@ app.get('/api/status', async (_req, res) => {
 	}
 
 	resultCache.time = Date.now();
-	resultCache.result = await manager.broadcastEval(async (client) => {
-		return {
-			id: client.cluster.id,
-			members: client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0),
-			guilds: client.guilds.cache.size,
-			uptime: client.uptime,
-		};
+	const results = await manager.broadcastEval(async (client) => {
+		const guildData = await Promise.all(
+			client.guilds.cache.map((guild) => {
+				return {
+					shardId: guild.shardId,
+					memberCount: guild.memberCount,
+					uptime: client.uptime,
+				};
+			})
+		);
+		return guildData;
 	});
 
-	res.status(200).send(resultCache.result);
+	const flattenedResults = results.flat();
+
+	const shardCounters = new Map<number, number>();
+
+	const data = await flattenedResults.reduce((acc: any[], current: any) => {
+		if (!shardCounters.has(current.shardId)) {
+			shardCounters.set(current.shardId, 0);
+		}
+
+		const counter = shardCounters.get(current.shardId)!;
+		shardCounters.set(current.shardId, counter + 1);
+		const existing = acc.find((item: any) => item.shardId === current.shardId);
+
+		if (existing) {
+			existing.memberCount += current.memberCount;
+			existing.uptime = Math.max(existing.uptime, current.uptime);
+			existing.guildCount += 1;
+		} else {
+			acc.push({
+				shardId: current.shardId,
+				guildCount: 1,
+				memberCount: current.memberCount,
+				uptime: current.uptime,
+			});
+		}
+		return acc;
+	}, []);
+
+	const totalMembers = data.reduce((acc, result) => acc + result.memberCount, 0);
+	const totalGuilds = data.reduce((acc, result) => acc + result.guildCount, 0);
+	const averageUptime = data.reduce((acc, result) => acc + (result.uptime ?? 0), 0) / results.length;
+
+	return res.status(200).json({
+		shards: data,
+		totalMembers,
+		totalGuilds,
+		averageUptime,
+	});
+});
+
+app.get('/api/status/top', async (_req, res) => {
+	try {
+		const results = await manager.broadcastEval(async (client) => {
+			const topGuilds = client.guilds.cache.sort((a, b) => b.memberCount - a.memberCount).first(50);
+
+			return topGuilds.map((guild) => ({
+				id: guild.id,
+				name: guild.name,
+				avatar: guild.iconURL({ size: 1024 }),
+				memberCount: guild.memberCount,
+			}));
+		});
+
+		const topGuilds = results.flat();
+
+		const overallTopGuilds = topGuilds.sort((a, b) => b.memberCount - a.memberCount).slice(0, 50);
+
+		return res.status(200).json(overallTopGuilds);
+	} catch (error) {
+		return res.status(500).send({ error: 'Error fetching top guilds' });
+	}
 });
 
 // app.get('/api/statistics/:guildId', async (req, res) => {
@@ -84,6 +147,6 @@ manager
 			postData(manager);
 		}
 
-		app.listen(process.env.PORT, () => Logger.info(`Listening on port ${process.env.PORT}`));
+		app.listen(process.env.PORT, () => Logger.info(`API started on port ${process.env.PORT}`));
 	})
 	.catch((error) => Logger.error(error));

@@ -7,8 +7,14 @@ import type { ClientEvents } from '#types/events';
 
 import { Logger } from '#lib/logger';
 import { sendStatus } from '#root/status';
+import { syncCommands } from '#util/syncCommand';
 
 const readyEvent: ClientEvents['Ready'] = async (client) => {
+	// Sync commands first
+	await syncCommands(client).catch((error) => {
+		Logger.error('Failed to sync commands:', error);
+	});
+
 	// Offset Pad
 	const pad = ' '.repeat(2);
 

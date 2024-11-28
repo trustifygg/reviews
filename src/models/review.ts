@@ -6,12 +6,15 @@ export type IReview = {
 	reviewId: string;
 	messageId: string;
 	authorId: string;
-	threadId: string;
+	threadId?: string;
 	title: string;
 	review: string;
 	rating: number;
 	useful: IUseful;
-	attachment: string;
+	attachment?: string;
+	createdAt: Date;
+	updatedAt?: Date;
+	anonymous: boolean;
 };
 
 interface IUseful {
@@ -21,19 +24,36 @@ interface IUseful {
 
 const reviewSchema = new Schema<IReview>({
 	userId: { type: String },
-	guildId: { type: String },
-	reviewId: { type: String, unique: true },
+	guildId: { type: String, required: true, index: true },
+	reviewId: { type: String, unique: true, required: true },
 	messageId: { type: String, unique: true },
 	authorId: { type: String, required: true },
 	threadId: { type: String, required: false },
-	title: { type: String },
-	review: { type: String },
-	rating: { type: Number },
+	title: { type: String, required: true, trim: true },
+	review: { type: String, required: true, trim: true },
+	rating: { 
+		type: Number,
+		required: true,
+		min: 1,
+		max: 5,
+		validate: {
+			validator: Number.isInteger,
+			message: 'Rating must be an integer between 1 and 5'
+		}
+	},
 	useful: {
 		count: { type: Number, default: 0 },
-		voted: { type: [Array], default: [] },
+		voted: { type: [String], default: [] },
 	},
 	attachment: { type: String },
+	createdAt: { type: Date, default: Date.now },
+	updatedAt: { type: Date },
+	anonymous: { type: Boolean, default: false }
+}, {
+	timestamps: true
 });
+
+reviewSchema.index({ guildId: 1, createdAt: -1 });
+reviewSchema.index({ authorId: 1, createdAt: -1 });
 
 export const reviewModel = model('ReviewDB', reviewSchema, 'Reviews');

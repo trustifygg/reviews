@@ -1,6 +1,6 @@
 {
 	"name": "reviews",
-	"version": "2.0.0-a.1",
+	"version": "2.0.0-b.3",
 	"description": "A Discord bot written on top of discord.js for gathering reviews.",
 	"main": "dist/index.js",
 	"imports": {
