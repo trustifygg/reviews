@@ -6,7 +6,7 @@ export type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 export type NonNullObject = object & {};
 
-interface APIGuildGetResponse {
+interface ApiGuild {
     // ... existing properties ...
     blacklistedRoles: string[];
 }
