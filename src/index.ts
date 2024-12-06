@@ -5,6 +5,7 @@ import { ChildProcess } from 'child_process';
 import { Logger } from '#lib/logger';
 
 import '#lib/database/mongodb';
+import mongoose from 'mongoose';
 
 const isProductionMode = envParseString('NODE_ENV') === 'production';
 
@@ -12,7 +13,6 @@ const startupOptions = !isProductionMode
 	? {
 			totalShards: 1,
 			shardsPerClusters: 1,
-			
 		}
 	: { totalShards: 32, shardsPerClusters: 8 };
 
@@ -137,6 +137,11 @@ app.get('/api/status/top', async (_req, res) => {
 
 // 	res.status(200).send(data);
 // });
+
+mongoose
+	.connect(process.env.MONGODB_SRV as string)
+	.then(() => Logger.info('Connected to MongoDB'))
+	.catch((err) => Logger.error('MongoDB connection error:', err));
 
 manager
 	.spawn({ timeout: 10 * 1000 })

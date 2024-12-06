@@ -1,7 +1,7 @@
 import { ChatInputCommand } from '#structure/ChatInputCommand';
 import { ApplyCommandOption, Command } from '#structure/Command';
 import { ChatInputCommandInteraction, Client, SlashCommandBuilder } from 'discord.js';
-import { createReview, postReview } from '#manager/reviews/reviewFunctions';
+import { createReview, postReview } from '#manager/reviews/index';
 import { generateUniqueId } from '#util/generateId';
 
 @ApplyCommandOption(
@@ -9,18 +9,10 @@ import { generateUniqueId } from '#util/generateId';
 		.setName('review')
 		.setDescription('Create a review for this server.')
 		.addStringOption((option) =>
-			option
-				.setName('title')
-				.setDescription('The title of your review')
-				.setRequired(true)
-				.setMaxLength(100)
+			option.setName('title').setDescription('The title of your review').setRequired(true).setMaxLength(100)
 		)
 		.addStringOption((option) =>
-			option
-				.setName('review')
-				.setDescription('Your detailed review')
-				.setRequired(true)
-				.setMaxLength(2000)
+			option.setName('review').setDescription('Your detailed review').setRequired(true).setMaxLength(2000)
 		)
 		.addNumberOption((option) =>
 			option
@@ -31,16 +23,10 @@ import { generateUniqueId } from '#util/generateId';
 				.setMaxValue(5)
 		)
 		.addBooleanOption((option) =>
-			option
-				.setName('anonymous')
-				.setDescription('Whether to post this review anonymously')
-				.setRequired(false)
+			option.setName('anonymous').setDescription('Whether to post this review anonymously').setRequired(false)
 		)
 		.addAttachmentOption((option) =>
-			option
-				.setName('attachment')
-				.setDescription('Optional image or file to attach to your review')
-				.setRequired(false)
+			option.setName('attachment').setDescription('Optional image or file to attach to your review').setRequired(false)
 		),
 	{ allowDM: false }
 )
@@ -51,17 +37,14 @@ export class UserCommand extends ChatInputCommand {
 		client: Client<true>
 	) {
 		try {
-			// Defer the reply immediately
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply({ ephemeral: false });
 
-			// Get all review data
 			const title = options.getString('title', true);
 			const review = options.getString('review', true);
 			const rating = options.getNumber('rating', true);
 			const anonymous = options.getBoolean('anonymous') ?? false;
 			const attachment = options.getAttachment('attachment');
 
-			// Validate input lengths
 			if (title.length > 100) {
 				await interaction.editReply({
 					content: 'Title must be 100 characters or less.',
@@ -76,20 +59,18 @@ export class UserCommand extends ChatInputCommand {
 				return;
 			}
 
-			// Prepare review data
 			const reviewData = {
 				guildId: interaction.guildId,
 				reviewId: generateUniqueId(),
 				title,
 				review,
 				rating,
-				authorId: interaction.user.id,
+				author: interaction.user.id,
 				anonymous,
 				messageId: '',
-				attachment: attachment?.url
+				attachment: attachment?.url,
 			};
 
-			// Post the review to the channel
 			const postResult = await postReview(interaction, reviewData);
 
 			if (!postResult.success) {
@@ -99,9 +80,8 @@ export class UserCommand extends ChatInputCommand {
 				return;
 			}
 
-			// Update the review with the message ID and save to database
 			reviewData.messageId = postResult.message.id;
-			
+
 			try {
 				await createReview(reviewData);
 
@@ -109,21 +89,22 @@ export class UserCommand extends ChatInputCommand {
 					content: 'Your review has been successfully submitted! 🎉\nThank you for your feedback!',
 				});
 			} catch (error) {
-				// If the review fails to save to the database, delete the message
 				await postResult.message.delete().catch(() => null);
 				throw error;
 			}
-
 		} catch (error) {
 			console.error('Error creating review:', error);
-			
-			const errorMessage = error instanceof Error ? 
-				`Error: ${error.message}` : 
-				'There was an error submitting your review. Please try again later.';
-			
-			await interaction.editReply({
-				content: errorMessage,
-			}).catch(() => null);
+
+			const errorMessage =
+				error instanceof Error
+					? `Error: ${error.message}`
+					: 'There was an error submitting your review. Please try again later.';
+
+			await interaction
+				.editReply({
+					content: errorMessage,
+				})
+				.catch(() => null);
 		}
 	}
 }

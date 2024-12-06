@@ -4,6 +4,7 @@ import { inspect } from 'node:util';
 import { date } from '@imranbarbhuiya/duration';
 import { envParseBoolean } from '@skyra/env-utilities';
 import { blue, bold, cyan, green, magenta, red, yellow } from 'colorette';
+import chalk from 'chalk';
 
 const colorDebugLog = (str: string) => {
 	if (!str.startsWith('[')) return bold(str);
@@ -32,12 +33,12 @@ export class Logger extends null {
 		console.warn(Logger.currentDate(), blue('[WARN]'), '|', yellow(this.inspectMessage(msg)));
 	}
 
-	public static error(msg: unknown, rest: unknown[] = []) {
+	public static error(msg: unknown, ...args: unknown[]) {
 		console.error(
-			Logger.currentDate(),
-			blue('[ERROR]'),
+			chalk.red('[ERROR]'),
+			chalk.red(new Date().toLocaleString()),
 			msg instanceof Error ? inspect(msg) : red(msg as string),
-			...rest
+			...args
 		);
 	}
 
