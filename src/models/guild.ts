@@ -1,38 +1,70 @@
-import { model, Schema, type InferSchemaType } from 'mongoose';
-
-const guildSchema = new Schema({
-	guildId: { type: String, unique: true, required: true },
-	name: { type: String },
-	iconURL: { type: String },
-	channel: { type: String },
-	logsChannel: { type: String },
-	reviewRole: { type: String },
-	anonymousReviews: { type: Boolean, default: true },
-	forceAnonymousReviews: { type: Boolean, default: false },
-	createThreads: { type: Boolean, default: false },
-	reviewButton: { type: Boolean, default: true },
-	ratingEmoji: { type: String, default: '⭐' },
-	reviewTitle: { type: String, defalt: 'New Review Submitted!' },
+import mongoose from 'mongoose';
+export interface IGuild extends mongoose.Document {
+	guildId: string;
+	name: string;
+	iconURL?: string;
+	channel?: string;
+	logsChannel?: string;
+	reviewRoles: string[];
+	anonymousReviews: boolean;
+	forceAnonymousReviews: boolean;
+	createThreads: boolean;
+	reviewButton: boolean;
+	ratingEmoji: string;
+	reviewTitle: string;
+	usefulButton: boolean;
 	customReviewButton: {
-		type: {
-			label: String,
-			color: String,
-		},
-		default: {
-			label: 'Submit Review',
-			color: 'blue',
+		label: string;
+		color: string;
+	};
+	customEmbed: {
+		color: string;
+		footer: { text: string };
+	};
+	blacklistedRoles: string[];
+}
+
+const guildSchema = new mongoose.Schema({
+	guildId: { type: String, required: true, unique: true },
+	name: { type: String, required: true },
+	iconURL: String,
+	channel: { type: String, default: '' },
+	logsChannel: { type: String, default: '' },
+	reviewRoles: {
+		type: [String],
+		default: [],
+		validate: [
+			{
+				validator: (array: string[]) => array.length <= 5,
+				message: 'Cannot have more than 5 review roles',
+			},
+		],
+	},
+	anonymousReviews: { type: Boolean, default: false },
+	forceAnonymousReviews: { type: Boolean, default: false },
+	createThreads: { type: Boolean, default: true },
+	reviewButton: { type: Boolean, default: true },
+	usefulButton: { type: Boolean, default: true },
+	ratingEmoji: { type: String, default: '⭐' },
+	reviewTitle: { type: String, default: 'New Review Submitted!' },
+	customReviewButton: {
+		label: { type: String, default: 'Submit Review' },
+		color: {
+			type: String,
+			default: 'blurple',
+			enum: ['blurple', 'red', 'green', 'grey'],
 		},
 	},
 	customEmbed: {
-		type: {
-			color: String,
+		color: { type: String, default: '#5865F2' },
+		footer: {
+			text: { type: String },
 		},
-		default: {
-			color: '#5865F2',
-		},
+	},
+	blacklistedRoles: {
+		type: [String],
+		default: [],
 	},
 });
 
-export const guildModel = model('GuildDB', guildSchema, 'Guilds');
-
-export type IGuild = InferSchemaType<typeof guildSchema>;
+export const guildModel = mongoose.model<IGuild>('GuildDB', guildSchema, 'Guilds');

@@ -5,7 +5,6 @@ import { ChildProcess } from 'child_process';
 import { Logger } from '#lib/logger';
 
 import '#lib/database/mongodb';
-import mongoose from 'mongoose';
 
 const isProductionMode = envParseString('NODE_ENV') === 'production';
 
@@ -59,6 +58,9 @@ app.get('/api/status', async (_req, res) => {
 					shardId: guild.shardId,
 					memberCount: guild.memberCount,
 					uptime: client.uptime,
+					status: client.ws.status === 0 ? 'operational' 
+						: client.ws.status === 1 ? 'partial'
+						: 'offline'
 				};
 			})
 		);
@@ -66,7 +68,6 @@ app.get('/api/status', async (_req, res) => {
 	});
 
 	const flattenedResults = results.flat();
-
 	const shardCounters = new Map<number, number>();
 
 	const data = await flattenedResults.reduce((acc: any[], current: any) => {
@@ -82,27 +83,46 @@ app.get('/api/status', async (_req, res) => {
 			existing.memberCount += current.memberCount;
 			existing.uptime = Math.max(existing.uptime, current.uptime);
 			existing.guildCount += 1;
+			existing.status = current.status === 'offline' || existing.status === 'offline' ? 'offline'
+				: current.status === 'partial' || existing.status === 'partial' ? 'partial'
+				: 'operational';
 		} else {
 			acc.push({
 				shardId: current.shardId,
 				guildCount: 1,
 				memberCount: current.memberCount,
 				uptime: current.uptime,
+				status: current.status
 			});
 		}
 		return acc;
 	}, []);
 
+	const totalShards = manager.totalShards;
+	for (let i = 0; i < totalShards; i++) {
+		if (!data.find(shard => shard.shardId === i)) {
+			data.push({
+				shardId: i,
+				guildCount: 0,
+				memberCount: 0,
+				uptime: 0,
+				status: 'offline'
+			});
+		}
+	}
+
 	const totalMembers = data.reduce((acc, result) => acc + result.memberCount, 0);
 	const totalGuilds = data.reduce((acc, result) => acc + result.guildCount, 0);
 	const averageUptime = data.reduce((acc, result) => acc + (result.uptime ?? 0), 0) / results.length;
 
-	return res.status(200).json({
-		shards: data,
+	resultCache.result = {
+		shards: data.sort((a, b) => a.shardId - b.shardId),
 		totalMembers,
 		totalGuilds,
 		averageUptime,
-	});
+	};
+
+	return res.status(200).json(resultCache.result);
 });
 
 app.get('/api/status/top', async (_req, res) => {
@@ -137,11 +157,6 @@ app.get('/api/status/top', async (_req, res) => {
 
 // 	res.status(200).send(data);
 // });
-
-mongoose
-	.connect(process.env.MONGODB_SRV as string)
-	.then(() => Logger.info('Connected to MongoDB'))
-	.catch((err) => Logger.error('MongoDB connection error:', err));
 
 manager
 	.spawn({ timeout: 10 * 1000 })

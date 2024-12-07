@@ -1,7 +1,7 @@
 import { ChatInputCommand } from '#structure/ChatInputCommand';
 import { ApplyCommandOption, Command } from '#structure/Command';
 import { ChatInputCommandInteraction, Client, SlashCommandBuilder } from 'discord.js';
-import { createReview, postReview } from '#manager/reviews/index';
+import { postReview } from '#manager/reviews/index';
 import { generateUniqueId } from '#util/generateId';
 
 @ApplyCommandOption(
@@ -65,9 +65,8 @@ export class UserCommand extends ChatInputCommand {
 				title,
 				review,
 				rating,
-				author: interaction.user.id,
-				anonymous,
-				messageId: '',
+				authorId: interaction.user.id,
+				anonymousReview: anonymous,
 				attachment: attachment?.url,
 			};
 
@@ -80,31 +79,16 @@ export class UserCommand extends ChatInputCommand {
 				return;
 			}
 
-			reviewData.messageId = postResult.message.id;
-
-			try {
-				await createReview(reviewData);
-
-				await interaction.editReply({
-					content: 'Your review has been successfully submitted! 🎉\nThank you for your feedback!',
-				});
-			} catch (error) {
-				await postResult.message.delete().catch(() => null);
-				throw error;
-			}
+			await interaction.editReply({
+				content: 'Your review has been successfully submitted! 🎉\nThank you for your feedback!',
+			});
 		} catch (error) {
 			console.error('Error creating review:', error);
+			const errorMessage = error instanceof Error
+				? `Error: ${error.message}`
+				: 'There was an error submitting your review. Please try again later.';
 
-			const errorMessage =
-				error instanceof Error
-					? `Error: ${error.message}`
-					: 'There was an error submitting your review. Please try again later.';
-
-			await interaction
-				.editReply({
-					content: errorMessage,
-				})
-				.catch(() => null);
+			await interaction.editReply({ content: errorMessage }).catch(() => null);
 		}
 	}
 }
