@@ -11,6 +11,7 @@ import { IReview, reviewModel } from '#model/review';
 import { Logger } from '#lib/logger';
 import { guildModel, IGuild } from '#model/guild';
 import { convertButtonStyle } from '#util/convertButtonStyle';
+import { set } from 'mongoose';
 
 export async function fetchGuildSettings(guildId: string): Promise<IGuild | null> {
 	try {
@@ -62,22 +63,24 @@ export function createReviewEmbed(
 	const anonymousAvatarUrl =
 		'https://cdn.discordapp.com/attachments/1187454852985524365/1187837153691041914/anonymous.png';
 
-	// Create button row
-	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		new ButtonBuilder()
-			.setCustomId(`useful-${review.reviewId}`)
-			.setLabel(`Useful (0)`)
-			.setEmoji('👍')
-			.setStyle(ButtonStyle.Secondary)
-	);
+	const row = new ActionRowBuilder<ButtonBuilder>();
 
-	// Add review button if enabled
 	if (settings.reviewButton) {
 		row.addComponents(
 			new ButtonBuilder()
 				.setCustomId('writeReview')
 				.setLabel(settings.customReviewButton.label)
 				.setStyle(convertButtonStyle(settings.customReviewButton.color))
+		);
+	}
+
+	if (settings.usefulButton) {
+		row.addComponents(
+			new ButtonBuilder()
+				.setCustomId(`useful-${review.reviewId}`)
+				.setLabel(`Useful (0)`)
+				.setEmoji('👍')
+				.setStyle(ButtonStyle.Secondary)
 		);
 	}
 
@@ -133,6 +136,37 @@ export async function postReview(
 				success: false,
 				error: 'Failed to fetch guild settings. Please try again later.',
 			};
+		}
+
+		// Check for blacklisted roles
+		if (guildSettings.blacklistedRoles?.length > 0) {
+			const hasBlacklistedRole = interaction.member.roles.cache.some((role) =>
+				guildSettings.blacklistedRoles?.includes(role.id)
+			);
+
+			if (hasBlacklistedRole) {
+				return {
+					success: false,
+					error: 'You have a role that is not allowed to create reviews.',
+				};
+			}
+		}
+
+		// Check for required review roles
+		if (guildSettings.reviewRoles?.length > 0) {
+			const hasReviewRole = interaction.member.roles.cache.some((role) => guildSettings.reviewRoles?.includes(role.id));
+
+			if (!hasReviewRole) {
+				const rolesList = guildSettings.reviewRoles
+					.map((roleId) => interaction.guild.roles.cache.get(roleId)?.toString())
+					.filter(Boolean)
+					.join(', ');
+
+				return {
+					success: false,
+					error: `You need one of these roles to create reviews: ${rolesList}`,
+				};
+			}
 		}
 
 		if (!guildSettings.channel) {
