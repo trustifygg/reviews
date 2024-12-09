@@ -4,8 +4,6 @@ import { Time } from '@imranbarbhuiya/duration';
 import { envParseString } from '@skyra/env-utilities';
 import { request } from 'undici';
 
-import type { ShardingManager } from 'discord.js';
-
 import { Logger } from '#lib/logger';
 import { ClusterManager } from 'discord-hybrid-sharding';
 

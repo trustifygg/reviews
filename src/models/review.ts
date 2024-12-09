@@ -52,6 +52,10 @@ const reviewSchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
+	editedAt: {
+		type: Date,
+		default: null,
+	},
 });
 
 export const reviewModel = mongoose.model('ReviewsDB', reviewSchema, 'Reviews');
@@ -61,12 +65,13 @@ export interface IReview extends mongoose.Document {
 	reviewId: string;
 	authorId: string;
 	messageId?: string;
-	threadId?: string
+	threadId?: string;
 	title: string;
 	review: string;
 	rating: number;
 	anonymousReview: boolean;
 	useful: { count: number; users: string[] };
 	createdAt: Date;
+	editedAt: Date | null;
 	attachment: string;
 }

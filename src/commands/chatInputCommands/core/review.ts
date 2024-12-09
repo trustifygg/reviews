@@ -80,7 +80,7 @@ export class UserCommand extends ChatInputCommand {
 			}
 
 			await interaction.editReply({
-				content: 'Your review has been successfully submitted! 🎉\nThank you for your feedback!',
+				content: 'Your review has been successfully submitted!',
 			});
 		} catch (error) {
 			console.error('Error creating review:', error);
