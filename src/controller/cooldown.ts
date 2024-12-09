@@ -14,7 +14,7 @@ export const cooldown = (
 	context: ChatInputCommandInteraction | ContextMenuCommandInteraction | Message,
 	command: { cooldown?: number; name: string },
 	cooldown = context.client.cooldown,
-	message: string | null | undefined = 'Please wait {retryAfter} before using the command {name} again.'
+	message: string | null | undefined = 'Please wait until <t:{timestamp}:R> before using the command {name} again.'
 ): boolean => {
 	if (!command.cooldown) return true;
 	if (!cooldown.has(command.name)) {
@@ -28,9 +28,8 @@ export const cooldown = (
 	if (timeStamps.has(authorOrUser(context).id)) {
 		const expireTime = timeStamps.get(authorOrUser(context).id)! + cooldownAmount;
 		if (currentTime < expireTime) {
-			const timeLeft = (expireTime - currentTime) / Time.Second;
-			const retryAfter = timeLeft <= 60 ? `${timeLeft.toFixed(1)}s` : `${(timeLeft / 60).toFixed(1)}m`;
-			const msg = message?.replace('{retryAfter}', retryAfter).replace('{name}', command.name);
+			const expireTimeSeconds = Math.floor(expireTime / 1000);
+			const msg = message?.replace('{timestamp}', expireTimeSeconds.toString()).replace('{name}', command.name);
 			if (msg?.length) context.reply({ content: msg, ephemeral: true }).catch(() => null);
 			return false;
 		}
