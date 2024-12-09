@@ -1,8 +1,9 @@
 import type { ClientEvents } from '#types/events';
 
 import { guildModel } from '#model/guild';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, DateResolvable, EmbedBuilder, WebhookClient } from 'discord.js';
 import { Constants } from '#util/constants';
+import { getDynamicTime } from '#util/getDynamicTime';
 
 const guildCreateEvent: ClientEvents['GuildCreate'] = async (guild) => {
 	const data = await guildModel.findOne({ guildId: guild.id });
@@ -39,6 +40,36 @@ const guildCreateEvent: ClientEvents['GuildCreate'] = async (guild) => {
 	);
 
 	guild.systemChannel?.send({ embeds: [joinEmbed], components: [row] });
+
+	const detailedTime = (date: DateResolvable) =>
+		`${getDynamicTime(date, 'LONG_TIME_AND_DATE')}  ${getDynamicTime(date, 'RELATIVE')}`;
+
+	const webhook = new WebhookClient({
+		url: 'https://discord.com/api/webhooks/1200631483250004078/DHI0tOHmwlG5ADiIjeNLTM4ijBmyKTOZ3woUlLfZkptCA-e8S-qRpm8ifeLOVKBEcntL',
+	});
+
+	const owner = await guild.fetchOwner();
+
+	const description = `Name: ${guild.name} (${guild.id})\nOwner: ${
+		owner.user.username
+	} (${owner.id})\nMembers: ${guild.memberCount}\nTotal Guilds: ${
+		guild.client.guilds.cache.size
+	}\nCreate: ${detailedTime(guild.members.me?.joinedAt || new Date())}\nRemove: ❌
+	    `;
+
+	const embeds = [
+		new EmbedBuilder()
+			.setColor('Green')
+			.setDescription(description)
+			.setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
+			.setThumbnail(guild.iconURL())
+			.setTimestamp(),
+	];
+
+	const username = 'Guild Create';
+	const avatarURL = guild.client.user.displayAvatarURL();
+
+	await webhook.send({ embeds, username, avatarURL }).catch(console.error);
 };
 
 export default guildCreateEvent;

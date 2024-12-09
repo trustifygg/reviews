@@ -1,5 +1,5 @@
 import { cyan, cyanBright } from 'colorette';
-import { ActivityType, Client } from 'discord.js';
+import { ActivitiesOptions, ActivityType, Client } from 'discord.js';
 import figlet from 'figlet';
 import gradient from 'gradient-string';
 
@@ -27,9 +27,7 @@ const readyEvent: ClientEvents['Ready'] = async (client) => {
 
 	Logger.info(`├─ Loaded ${client.chatInputCommands.size} ChatInput Commands`);
 	Logger.info(`├─ Loaded ${client.contextmenuCommands.size} ContextMenu Commands`);
-	Logger.info(`├─ Loaded ${client.helpCommands.size} Helper Commands`);
 	Logger.info('├─ Loaded All Events');
-	Logger.info('├─ Loaded all giveaway events');
 
 	Logger.info(`├─ Logged in as ${client.user.tag}.`);
 	Logger.info(
@@ -40,6 +38,25 @@ const readyEvent: ClientEvents['Ready'] = async (client) => {
 	client.user.setActivity(`/review | Cluster ${client.cluster.id}`, {
 		type: ActivityType.Listening as number,
 	});
+
+	const statuses = [
+		{
+			name: `/review | Cluster ${client.cluster.id}`,
+			type: ActivityType.Listening,
+		},
+		{
+			name: `${client.guilds.cache.size} Servers`,
+			type: ActivityType.Watching,
+		},
+		{},
+		{ name: 'Manage Reviews with Ease', type: ActivityType.Custom },
+		{ name: 'reviewsapp.xyz', type: ActivityType.Custom },
+	] as ActivitiesOptions[];
+
+	setInterval(() => {
+		const index = Math.floor(Math.random() * statuses.length);
+		client.user.setPresence({ activities: [statuses[index]] });
+	}, 15000);
 };
 
 export default readyEvent;
