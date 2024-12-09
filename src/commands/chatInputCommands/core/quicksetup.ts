@@ -12,7 +12,12 @@ import { ApplyCommandOption } from '#structure/Command';
 import { ChatInputCommand } from '#structure/ChatInputCommand';
 import { guildModel } from '#model/guild';
 
-@ApplyCommandOption(new SlashCommandBuilder().setName('quicksetup').setDescription('...'), { allowDM: false })
+@ApplyCommandOption(
+	new SlashCommandBuilder()
+		.setName('quicksetup')
+		.setDescription('Start a automated setup of the bot that takes just seconds!'),
+	{ allowDM: false }
+)
 export class UserCommand extends ChatInputCommand {
 	protected override async runTask(interaction: ChatInputCommandInteraction<'cached'>) {
 		const initialEmbed = new EmbedBuilder()

@@ -19,7 +19,7 @@ export class UserCommand extends Command {
 				name: messageOrInteraction.client.user.tag,
 				iconURL: messageOrInteraction.client.user.displayAvatarURL(),
 			})
-			.setDescription(`Pinging${Constants.emojis.colon}  ${Constants.emojis.loading}`)
+			.setDescription(`Pinging...`)
 			.setTimestamp()
 			.setFooter({
 				text: authorOrUser(messageOrInteraction).tag,
@@ -34,9 +34,9 @@ export class UserCommand extends Command {
 		await mongoose.connection.db.command({ ping: 1 });
 		const end = performance.now();
 		embed.setDescription(
-			`\n**Websocket heartbeat**${Constants.emojis.colon} ${formatMs(messageOrInteraction.client.ws.ping)}` +
-				`\n**Roundtrip latency**${Constants.emojis.colon} ${formatMs(ping)}` +
-				`\n**DB latency**${Constants.emojis.colon} ${formatMs(end - start)}`
+			`\n**Websocket heartbeat** ${formatMs(messageOrInteraction.client.ws.ping)}` +
+				`\n**Roundtrip latency** ${formatMs(ping)}` +
+				`\n**DB latency** ${formatMs(end - start)}`
 		);
 		message.edit({ embeds: [embed] }).catch(() => null);
 	}

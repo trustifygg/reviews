@@ -13,7 +13,7 @@ import { ApplyCommandOption, Command } from '#structure/Command';
 import { Constants } from '#util/constants';
 import { authorOrUser } from '#util/utils';
 
-@ApplyCommandOption(new SlashCommandBuilder().setName('invite').setDescription('Invite our bot to your server'), {
+@ApplyCommandOption(new SlashCommandBuilder().setName('invite').setDescription('Invite the bot to your server'), {
 	allowDM: true,
 	usage: '`{p}invite`',
 })
@@ -23,7 +23,7 @@ export class UserCommand extends Command {
 		const botInviteLink = `${interaction.client.generateInvite({
 			scopes: [OAuth2Scopes.ApplicationsCommands, OAuth2Scopes.Bot],
 			permissions: [BigInt(1_543_892_063)],
-		})}&redirect_uri=${encodeURIComponent('https://discord.gg/w5b7dYRMZH')}&response_type=code`;
+		})}&redirect_uri=${encodeURIComponent(Constants.supportInviteLink)}&response_type=code`;
 
 		const embed = new EmbedBuilder()
 			.setColor(Constants.primaryColor)
