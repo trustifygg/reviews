@@ -1,5 +1,5 @@
 {
-	"name": "reviews",
+	"name": "reviews-web",
 	"version": "2.0.0-b.3",
 	"description": "A Discord bot written on top of discord.js for gathering reviews.",
 	"main": "dist/index.js",
@@ -33,8 +33,8 @@
 		]
 	},
 	"scripts": {
-		"dev:esbuild": "tsup --watch --onSuccess \"npm run start\"",
-		"dev": "npm run build && concurrently --kill-others-on-fail \"swc src --out-dir dist --strip-leading-paths --watch\" \"node --enable-source-maps . --watch\"",
+		"dev:esbuild": "tsup --watch --onSuccess \"pnpm start\"",
+		"dev": "pnpm build && concurrently --kill-others-on-fail \"swc src --out-dir dist --strip-leading-paths --watch\" \"nodemon --enable-source-maps . --watch\"",
 		"build": "swc src --out-dir dist --strip-leading-paths",
 		"start": "node --enable-source-maps ./dist/index.js",
 		"lint": "eslint --fix --cache .",
@@ -42,8 +42,8 @@
 		"typecheck": "tsc -p tsconfig.eslint.json",
 		"test": "vitest run"
 	},
-	"author": "Fraimer",
-	"license": "ISC",
+	"author": "Fraimer De La Cruz",
+	"license": "MIT",
 	"dependencies": {
 		"@imranbarbhuiya/decancer": "^0.2.4",
 		"@imranbarbhuiya/duration": "^5.1.8",
@@ -92,13 +92,13 @@
 		"@types/jsdom": "^21.1.6",
 		"@types/jsonwebtoken": "^9.0.7",
 		"@types/node": "^20.11.23",
-		"@types/prettier": "^3.0.0",
 		"@types/safe-regex": "^1.1.6",
 		"bufferutil": "^4.0.8",
 		"chokidar": "^3.6.0",
 		"concurrently": "^8.2.2",
-		"eslint": "^8.57.0",
+		"eslint": "^9.17.0",
 		"eslint-config-mahir": "^0.0.43",
+		"nodemon": "^3.1.9",
 		"prettier": "^3.2.5",
 		"tsup": "^8.0.2",
 		"typescript": "^5.3.3",

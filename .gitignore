@@ -1,76 +1,9 @@
-# Node.js
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-
-# Logs
-logs/
-*.log
-*.log.*
-
-# Dependency directories
 node_modules/
-
-# Output of `tsc`
 dist/
-build/
-
-# TypeScript
 *.tsbuildinfo
-
-# Environment variables
 .env
 *.env
-
-# Cache folders
-.cache/
-temp/
-
-# IDEs and editors
 .vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-
-# MacOS and Windows files
-.DS_Store
-Thumbs.db
-
-# Optional npm cache
-.npm/
-
-# Optional eslint cache
-.eslintcache
-
-# Prettier cache
-.prettiercache
-
-# Docker
-docker-compose.yml
-docker-compose.override.yml
-Dockerfile
-.dockerignore
-
-# Coverage reports
-coverage/
-*.lcov
-
-# Testing
-jest.config.js
-jest.config.ts
-jest.setup.js
-jest.setup.ts
-__tests__/
-__mocks__/
-*.spec.ts
-*.test.ts
-
-# Lock files
-package-lock.json
 pnpm-lock.yaml
-yarn.lock
-*.lock
