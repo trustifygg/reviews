@@ -1,5 +1,5 @@
 import { cyan, cyanBright } from 'colorette';
-import { ActivitiesOptions, ActivityType, Client } from 'discord.js';
+import { ActivityType, Client } from 'discord.js';
 import figlet from 'figlet';
 import gradient from 'gradient-string';
 
@@ -8,6 +8,7 @@ import type { ClientEvents } from '#types/events';
 import { Logger } from '#lib/logger';
 import { sendStatus } from '#root/status';
 import { syncCommands } from '#util/syncCommand';
+import { reviewModel } from '#model/review';
 
 const readyEvent: ClientEvents['Ready'] = async (client) => {
 	// Sync commands first
@@ -35,28 +36,11 @@ const readyEvent: ClientEvents['Ready'] = async (client) => {
 	);
 	void sendStatus(client);
 
-	client.user.setActivity(`/review | Cluster ${client.cluster.id}`, {
+	const totalReviews = await reviewModel.countDocuments();
+	
+	client.user.setActivity(`/review | ${totalReviews} reviews`, {
 		type: ActivityType.Listening as number,
 	});
-
-	const statuses = [
-		{
-			name: `/review | Cluster ${client.cluster.id}`,
-			type: ActivityType.Listening,
-		},
-		{
-			name: `${client.guilds.cache.size} Servers`,
-			type: ActivityType.Watching,
-		},
-		{},
-		{ name: 'Manage Reviews with Ease', type: ActivityType.Custom },
-		{ name: 'reviewsapp.xyz', type: ActivityType.Custom },
-	] as ActivitiesOptions[];
-
-	setInterval(() => {
-		const index = Math.floor(Math.random() * statuses.length);
-		client.user.setPresence({ activities: [statuses[index]] });
-	}, 15000);
 };
 
 export default readyEvent;
