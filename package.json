@@ -36,7 +36,7 @@
 		"dev:esbuild": "tsup --watch --onSuccess \"pnpm start\"",
 		"dev": "pnpm build && concurrently --kill-others-on-fail \"swc src --out-dir dist --strip-leading-paths --watch\" \"nodemon --enable-source-maps . --watch\"",
 		"build": "swc src --out-dir dist --strip-leading-paths",
-		"start": "node --enable-source-maps ./dist/index.js",
+		"start": "pnpm build && node --enable-source-maps ./dist/index.js",
 		"lint": "eslint --fix --cache .",
 		"format": "prettier --write --cache .",
 		"typecheck": "tsc -p tsconfig.eslint.json",
