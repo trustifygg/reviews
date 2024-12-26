@@ -1,43 +1,23 @@
-import { performance } from 'node:perf_hooks';
 
-import { EmbedBuilder, SlashCommandBuilder, type ChatInputCommandInteraction, type Message } from 'discord.js';
-import mongoose from 'mongoose';
+import { SlashCommandBuilder, type ChatInputCommandInteraction } from 'discord.js';
 
 import { ApplyCommandOption, Command } from '#structure/Command';
-import { Constants } from '#util/constants';
-import { authorOrUser, formatMs } from '#util/utils';
 
-@ApplyCommandOption(new SlashCommandBuilder().setName('ping').setDescription('Shows the current latency of bot'), {
-	usage: '`{p}ping`',
-	allowDM: true,
-})
+@ApplyCommandOption(new SlashCommandBuilder().setName('ping').setDescription('Shows the current latency of bot'))
 export class UserCommand extends Command {
-	protected override async runTask(messageOrInteraction: ChatInputCommandInteraction<'cached'> | Message<true>) {
-		const embed = new EmbedBuilder()
-			.setColor(Constants.primaryColor)
-			.setAuthor({
-				name: messageOrInteraction.client.user.tag,
-				iconURL: messageOrInteraction.client.user.displayAvatarURL(),
-			})
-			.setDescription(`Pinging...`)
-			.setTimestamp()
-			.setFooter({
-				text: authorOrUser(messageOrInteraction).tag,
-				iconURL: authorOrUser(messageOrInteraction).displayAvatarURL(),
-			});
-		const message = await messageOrInteraction.reply({
-			embeds: [embed],
+	protected override async runTask(interaction: ChatInputCommandInteraction<'cached'>) {
+		let sent = await interaction.reply({
+			content: `🏓 Pong!`,
 			fetchReply: true,
 		});
-		const ping = message.createdTimestamp - messageOrInteraction.createdTimestamp;
-		const start = performance.now();
-		await mongoose.connection.db.command({ ping: 1 });
-		const end = performance.now();
-		embed.setDescription(
-			`\n**Websocket heartbeat** ${formatMs(messageOrInteraction.client.ws.ping)}` +
-				`\n**Roundtrip latency** ${formatMs(ping)}` +
-				`\n**DB latency** ${formatMs(end - start)}`
-		);
-		message.edit({ embeds: [embed] }).catch(() => null);
+		try {
+			sent.edit(
+				`🏓 Pong! \`|\` Heartbeat : **${
+					interaction.client.ws.ping
+				}ms** \`|\` Roundtrip latency : **${
+					sent.createdTimestamp - interaction.createdTimestamp
+				}ms**.`
+			);
+		} catch (e) {}
 	}
 }
