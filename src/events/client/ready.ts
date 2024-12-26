@@ -38,7 +38,7 @@ const readyEvent: ClientEvents['Ready'] = async (client) => {
 
 	const totalReviews = await reviewModel.countDocuments();
 	
-	client.user.setActivity(`/review | ${totalReviews} reviews`, {
+	client.user.setActivity(`/review | ${totalReviews.toLocaleString()} reviews`, {
 		type: ActivityType.Listening as number,
 	});
 };
