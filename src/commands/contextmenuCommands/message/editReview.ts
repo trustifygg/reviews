@@ -1,81 +1,48 @@
 import {
 	ActionRowBuilder,
-	AutocompleteInteraction,
-	ChatInputCommandInteraction,
+	ApplicationCommandType,
 	EmbedBuilder,
 	ModalBuilder,
-	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 } from 'discord.js';
-
-import { ApplyCommandOption, Command } from '#structure/Command';
+import type { ContextMenuMessageCommand } from '#types/command';
 import { reviewModel } from '#model/review';
 import { guildModel } from '#model/guild';
 import { getRating } from '#util/getRating';
 
-@ApplyCommandOption(
-	new SlashCommandBuilder()
-		.setName('edit')
-		.setDescription('Edit your review')
-		.addStringOption((option) =>
-			option
-				.setName('review_id')
-				.setDescription('The ID of the review you want to edit')
-				.setRequired(true)
-				.setAutocomplete(true)
-		),
-	{
-		allowDM: false,
-	}
-)
-export class UserCommand extends Command {
-	public override async autocompleteRun(interaction: AutocompleteInteraction<'cached'>) {
-		const focusedValue = interaction.options.getFocused();
+export const command: ContextMenuMessageCommand = {
+	name: 'Edit Review',
+	type: ApplicationCommandType.Message,
 
-		// Get all reviews for this guild and user
-		const reviews = await reviewModel.find({
-			guildId: interaction.guildId,
-			authorId: interaction.user.id,
-		});
+	async runTask(interaction) {
+		const messageId = interaction.targetId;
 
-		// Filter and format reviews for autocomplete
-		const choices = reviews
-			.map((review) => ({
-				name: `${review.title} (${review.reviewId})`,
-				value: review.reviewId,
-			}))
-			.filter((choice) => choice.name.toLowerCase().includes(focusedValue.toLowerCase()))
-			.slice(0, 25);
+		const message = await interaction.channel?.messages.fetch(messageId);
 
-		await interaction.respond(choices);
-	}
+		if (!message) {
+			return interaction.reply({
+				content: 'Could not find a review. Please try again.',
+				ephemeral: true,
+			});
+		}
 
-	public override async runTask(interaction: ChatInputCommandInteraction<'cached'>, options: Command.ChatInputOptions) {
-		const reviewId = options.getString('review_id', true);
-
-		// Find the review in database
-		const review = await reviewModel.findOne({
-			guildId: interaction.guildId,
-			reviewId: reviewId,
-		});
+		const review = await reviewModel.findOne({ messageId: message.id });
 
 		if (!review) {
 			return interaction.reply({
-				content: 'Could not find a review with that ID.',
+				content: 'This is not a review. Please try again.',
 				ephemeral: true,
 			});
 		}
 
-		// Check if user owns the review
 		if (review.authorId !== interaction.user.id) {
 			return interaction.reply({
-				content: 'You can only edit your own reviews.',
+				content: 'You can only delete your own reviews.',
 				ephemeral: true,
 			});
 		}
 
-		// Check if review is older than 24 hours
 		const reviewAge = Date.now() - review.createdAt.getTime();
 		const oneDayInMs = 24 * 60 * 60 * 1000;
 
@@ -86,9 +53,8 @@ export class UserCommand extends Command {
 			});
 		}
 
-		// Create edit modal
 		const modal = new ModalBuilder()
-			.setCustomId(`edit-review-${reviewId}`)
+			.setCustomId(`edit-review-${review.id}`)
 			.setTitle('Edit Review')
 			.addComponents(
 				new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -125,7 +91,7 @@ export class UserCommand extends Command {
 
 		try {
 			const modalSubmit = await interaction.awaitModalSubmit({
-				filter: (i) => i.customId === `edit-review-${reviewId}` && i.user.id === interaction.user.id,
+				filter: (i) => i.customId === `edit-review-${review.id}` && i.user.id === interaction.user.id,
 				time: 10 * 60 * 1000, // 10 minutes
 			});
 
@@ -202,5 +168,5 @@ export class UserCommand extends Command {
 				ephemeral: true,
 			});
 		}
-	}
-}
+	},
+};

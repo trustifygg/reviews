@@ -20,23 +20,34 @@ const guildCreateEvent: ClientEvents['GuildCreate'] = async (guild) => {
 		.setDescription(
 			`To get started use the \`/quicksetup\` to begin the automatic setup or visit the [dashboard](${process.env.WEBSITE_URL}/dashboard/${guild.id}) to further customize the me!`
 		)
-		.addFields({
-			name: 'Help',
-			value:
-				'To view my commands, use the `/help` command. Additionally, if you encounter any issues or need help, feel free to join our [support server](${Constants.supportInviteLink}).',
-		});
+		.addFields(
+			{
+				name: 'Help',
+				value:
+					'To view my commands, use the `/help` command. Additionally, if you encounter any issues or need help, feel free to join our [support server](${Constants.supportInviteLink}).',
+			},
+			{
+				name: 'Documentation',
+				value: 'To learn more about Reviews, visit our [documentation](https://docs.reviewsapp.xyz/)!',
+			}
+		);
 
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
 		new ButtonBuilder()
 			.setURL(`${process.env.WEBSITE_URL}/dashboard/${guild.id}`)
 			.setEmoji('🌐')
-			.setLabel('Go to the Dashboard')
+			.setLabel('Go to Dashboard')
 			.setStyle(ButtonStyle.Link),
 		new ButtonBuilder()
 			.setStyle(ButtonStyle.Link)
 			.setEmoji('🏠')
 			.setLabel('Support Server')
-			.setURL(Constants.supportInviteLink)
+			.setURL(Constants.supportInviteLink),
+		new ButtonBuilder()
+			.setStyle(ButtonStyle.Link)
+			.setEmoji('📜')
+			.setLabel('Documentation')
+			.setURL(`https://docs.reviewsapp.xyz`)
 	);
 
 	guild.systemChannel?.send({ embeds: [joinEmbed], components: [row] });

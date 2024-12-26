@@ -6,12 +6,13 @@ import {
 	ChatInputCommandInteraction,
 	ColorResolvable,
 	EmbedBuilder,
+	PermissionFlagsBits,
 } from 'discord.js';
 import { IReview, reviewModel } from '#model/review';
 import { Logger } from '#lib/logger';
 import { guildModel, IGuild } from '#model/guild';
 import { convertButtonStyle } from '#util/convertButtonStyle';
-import { set } from 'mongoose';
+import { getRating } from '#util/getRating';
 
 export async function fetchGuildSettings(guildId: string): Promise<IGuild | null> {
 	try {
@@ -59,7 +60,8 @@ export function createReviewEmbed(
 	isAnonymous: boolean,
 	settings: IGuild
 ): { embed: EmbedBuilder; row: ActionRowBuilder<ButtonBuilder> } {
-	const ratingStr = settings.ratingEmoji.repeat(review.rating || 0);
+	const ratingStr = getRating(review.rating || 0);
+
 	const anonymousAvatarUrl =
 		'https://cdn.discordapp.com/attachments/1187454852985524365/1187837153691041914/anonymous.png';
 
@@ -178,6 +180,7 @@ export async function postReview(
 		}
 
 		const channel = await interaction.guild.channels.fetch(guildSettings.channel);
+
 		if (!channel?.isTextBased()) {
 			return {
 				success: false,
@@ -185,19 +188,48 @@ export async function postReview(
 			};
 		}
 
+		const botMember = await interaction.guild.members.fetchMe();
+		const permissions = channel.permissionsFor(botMember);
+
+		if (!permissions?.has(PermissionFlagsBits.ViewChannel)) {
+			return {
+				success: false,
+				error: "I don't have permission to view the review channel.",
+			};
+		}
+
+		if (!permissions?.has(PermissionFlagsBits.SendMessages)) {
+			return {
+				success: false,
+				error: "I don't have permission to send messages in the review channel.",
+			};
+		}
+
+		if (!permissions?.has(PermissionFlagsBits.EmbedLinks)) {
+			return {
+				success: false,
+				error: "I don't have permission to send embeds in the review channel.",
+			};
+		}
+
+		if (guildSettings.createThreads && !permissions?.has(PermissionFlagsBits.CreatePublicThreads)) {
+			return {
+				success: false,
+				error: "I don't have permission to create threads in the review channel.",
+			};
+		}
+
 		const anonymous = isAnonymous(review.anonymousReview, guildSettings);
 		const { embed, row } = createReviewEmbed(interaction, review, anonymous, guildSettings);
 
-		// Send message with components
 		const message = await channel.send({
 			embeds: [embed],
-			components: guildSettings.reviewButton ? [row] : [],
+			components: [row],
 			...(review.attachment ? { files: [review.attachment] } : {}),
 		});
 
 		let threadId: string | undefined;
 
-		// Create thread if enabled
 		if (guildSettings.createThreads) {
 			const thread = await message.startThread({
 				name: `Review: ${review.title?.slice(0, 50)}${anonymous ? ' (Anonymous)' : ''}`,
@@ -210,7 +242,6 @@ export async function postReview(
 			});
 		}
 
-		// Create review in database
 		const newReview = await createReview({
 			...review,
 			guildId: interaction.guildId,
@@ -269,7 +300,7 @@ async function sendReviewLog(
 				},
 				{
 					name: 'Rating',
-					value: settings.ratingEmoji.repeat(review.rating || 0),
+					value: getRating(review.rating || 0),
 					inline: true,
 				},
 				{
